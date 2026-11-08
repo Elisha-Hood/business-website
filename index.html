@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foundry Digital — Modern websites for local businesses</title>
+  <meta name="description" content="Foundry Digital rebuilds outdated business websites into fast, modern, mobile-friendly sites your customers actually enjoy using.">
+  <meta name="theme-color" content="#0e0c0a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e0c0a'/%3E%3Cpath d='M9 8h14v4H13.5v3H21v4h-7.5v5H9z' fill='%23ff7a1a'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="nav" id="top">
+    <a href="#top" class="logo" aria-label="Foundry Digital home">
+      <span class="logo-mark" aria-hidden="true">F</span>
+      <span>Foundry<span class="logo-dim"> Digital</span></span>
+    </a>
+    <nav aria-label="Main">
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span><span class="sr-only">Menu</span>
+      </button>
+      <ul id="nav-links" class="nav-links">
+        <li><a href="#transform">Our work</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact" class="btn btn-small">Get a free review</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <canvas class="embers" aria-hidden="true"></canvas>
+      <div class="hero-inner">
+        <p class="eyebrow reveal">Web design for local businesses</p>
+        <h1 class="hero-title">
+          <span class="line"><span>Your website should</span></span>
+          <span class="line"><span>win customers,</span></span>
+          <span class="line"><span>not <em class="molten">lose them.</em></span></span>
+        </h1>
+        <p class="hero-sub reveal" style="--d:.5s">
+          We take outdated, clunky business websites and rebuild them into fast, modern sites
+          that look great on every phone and make it easy for customers to call you, book you, or buy from you.
+        </p>
+        <div class="hero-cta reveal" style="--d:.65s">
+          <a href="#contact" class="btn btn-primary magnetic">Get a free website review <span aria-hidden="true">→</span></a>
+          <a href="#transform" class="btn btn-ghost">See the difference</a>
+        </div>
+      </div>
+      <a href="#transform" class="scroll-cue" aria-label="Scroll down"><span></span></a>
+    </section>
+
+    <!-- MARQUEE -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>Redesigns</span><i>✦</i><span>Mobile-first</span><i>✦</i><span>Lightning fast</span><i>✦</i><span>Local SEO</span><i>✦</i><span>Online booking</span><i>✦</i><span>Ongoing care</span><i>✦</i>
+        <span>Redesigns</span><i>✦</i><span>Mobile-first</span><i>✦</i><span>Lightning fast</span><i>✦</i><span>Local SEO</span><i>✦</i><span>Online booking</span><i>✦</i><span>Ongoing care</span><i>✦</i>
+      </div>
+    </div>
+
+    <!-- BEFORE / AFTER -->
+    <section class="section" id="transform">
+      <div class="section-head">
+        <p class="eyebrow reveal">The transformation</p>
+        <h2 class="reveal">Drag to see what we do.</h2>
+        <p class="lede reveal">Same business. Same services. One site sends customers to a competitor, the other gets them to pick up the phone.</p>
+      </div>
+
+      <div class="compare reveal" style="--pos:50%">
+        <!-- AFTER (modern) -->
+        <div class="compare-pane after" aria-hidden="true">
+          <div class="mock-modern">
+            <div class="mm-nav">
+              <strong>Riverside<span>Plumbing</span></strong>
+              <div class="mm-links"><span>Services</span><span>Reviews</span><span>Areas</span><b>Book now</b></div>
+            </div>
+            <div class="mm-hero">
+              <div>
+                <span class="mm-pill">● Available today</span>
+                <h3>Fast, honest plumbing for your home.</h3>
+                <p>Licensed local pros. Upfront pricing. Same-day appointments.</p>
+                <div class="mm-btns"><b>Book a visit</b><span>Call us</span></div>
+                <div class="mm-stars">★★★★★ <small>Loved by neighbors</small></div>
+              </div>
+              <div class="mm-art"><div class="mm-drop"></div></div>
+            </div>
+            <div class="mm-cards">
+              <div><i>🚿</i>Repairs</div><div><i>🔥</i>Water heaters</div><div><i>🧰</i>Remodels</div>
+            </div>
+          </div>
+        </div>
+        <!-- BEFORE (outdated) -->
+        <div class="compare-pane before" aria-hidden="true">
+          <div class="mock-old">
+            <div class="mo-banner">~*~ Welcome to Riverside Plumbing Homepage!!! ~*~</div>
+            <table class="mo-table"><tr>
+              <td class="mo-side">
+                <a>Home</a><a>About Us</a><a>Services</a><a>Contact</a><a>Links</a><a>Guestbook</a>
+                <div class="mo-counter">Visitors:<br><span>000427</span></div>
+              </td>
+              <td class="mo-main">
+                <div class="mo-construct">⚠ UNDER CONSTRUCTION ⚠</div>
+                <p><b>We are a plumbing company.</b> We do plumbing. Please call us at the number below for all your plumbing needs. We have been in business for many years.</p>
+                <p class="mo-blink">*** NEW!! Now accepting checks ***</p>
+                <p>Best viewed in Internet Explorer at 800x600.</p>
+                <p><u>Click here</u> to download our brochure (PDF, 14MB)</p>
+                <p class="mo-small">Last updated: March 2009</p>
+              </td>
+            </tr></table>
+          </div>
+        </div>
+
+        <div class="compare-handle" aria-hidden="true"><span>‹ ›</span></div>
+        <span class="compare-tag tag-before">Before</span>
+        <span class="compare-tag tag-after">After</span>
+        <input type="range" min="0" max="100" value="50" class="compare-range" aria-label="Before and after comparison slider">
+      </div>
+    </section>
+
+    <!-- PROBLEM -->
+    <section class="section problem">
+      <div class="section-head">
+        <p class="eyebrow reveal">Why it matters</p>
+        <h2 class="reveal">An old website is quietly costing you customers.</h2>
+      </div>
+      <div class="problem-grid">
+        <article class="pcard reveal">
+          <span class="pnum">01</span>
+          <h3>They're on their phone</h3>
+          <p>Most people find local businesses on mobile. If they have to pinch and zoom to read your hours, they hit back and call the next result.</p>
+        </article>
+        <article class="pcard reveal" style="--d:.1s">
+          <span class="pnum">02</span>
+          <h3>They judge in seconds</h3>
+          <p>A dated site makes a great business look closed, careless, or out of touch, before anyone reads a word about you.</p>
+        </article>
+        <article class="pcard reveal" style="--d:.2s">
+          <span class="pnum">03</span>
+          <h3>Slow means gone</h3>
+          <p>Heavy pages and giant images make people wait. Every extra second of loading is another chance for them to leave.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="section" id="services">
+      <div class="section-head">
+        <p class="eyebrow reveal">Services</p>
+        <h2 class="reveal">Everything you need. Nothing you don't.</h2>
+        <p class="lede reveal">We handle the whole thing, so you can get back to running your business.</p>
+      </div>
+      <div class="services-grid">
+        <article class="scard glow reveal">
+          <div class="sicon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H4zM8 20h8M12 16v4"/></svg></div>
+          <h3>Full redesign</h3>
+          <p>A modern, custom-designed site built around your business, your brand, and what your customers need to find.</p>
+        </article>
+        <article class="scard glow reveal" style="--d:.08s">
+          <div class="sicon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+          <h3>Mobile-first</h3>
+          <p>Looks and works great on every phone, tablet and laptop. Tap-to-call, maps and booking right where thumbs expect them.</p>
+        </article>
+        <article class="scard glow reveal" style="--d:.16s">
+          <div class="sicon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+          <h3>Built for speed</h3>
+          <p>Lean, optimized pages that load fast, even on a weak signal. No bloated templates, no waiting around.</p>
+        </article>
+        <article class="scard glow reveal">
+          <div class="sicon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+          <h3>Local SEO basics</h3>
+          <p>Clean structure, proper titles, and Google Business setup so people in your area can actually find you.</p>
+        </article>
+        <article class="scard glow reveal" style="--d:.08s">
+          <div class="sicon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+          <h3>Booking &amp; forms</h3>
+          <p>Online booking, quote requests and contact forms that land straight in your inbox, so leads never slip through.</p>
+        </article>
+        <article class="scard glow reveal" style="--d:.16s">
+          <div class="sicon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9M12 7v5l3 2"/><path d="M21 3v5h-5"/></svg></div>
+          <h3>Ongoing care</h3>
+          <p>Hosting, updates, new photos, holiday hours. Text us the change and it's done. Your site never goes stale again.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- PROCESS -->
+    <section class="section" id="process">
+      <div class="section-head">
+        <p class="eyebrow reveal">How it works</p>
+        <h2 class="reveal">From outdated to outstanding in four steps.</h2>
+      </div>
+      <ol class="steps">
+        <li class="step reveal">
+          <span class="step-dot" aria-hidden="true"></span>
+          <h3>Free review</h3>
+          <p>We look at your current site and show you exactly what's holding it back. No pressure, no jargon.</p>
+        </li>
+        <li class="step reveal" style="--d:.1s">
+          <span class="step-dot" aria-hidden="true"></span>
+          <h3>Plan &amp; design</h3>
+          <p>We learn your business, then design a site you approve before a single page goes live.</p>
+        </li>
+        <li class="step reveal" style="--d:.2s">
+          <span class="step-dot" aria-hidden="true"></span>
+          <h3>Build &amp; launch</h3>
+          <p>We build it, move your content over, test it on every device, and flip the switch.</p>
+        </li>
+        <li class="step reveal" style="--d:.3s">
+          <span class="step-dot" aria-hidden="true"></span>
+          <h3>Keep it fresh</h3>
+          <p>We stick around for updates and support, so your site stays as current as your business.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section about" id="about">
+      <div class="about-grid">
+        <div>
+          <p class="eyebrow reveal">About us</p>
+          <h2 class="reveal">Two founders. One simple idea.</h2>
+          <p class="lede reveal">Great local businesses deserve websites as good as the work they do.</p>
+          <p class="reveal">
+            Foundry Digital was started by two friends who kept seeing the same thing: excellent shops,
+            contractors and restaurants stuck with websites that made them look worse than they are.
+            So we started fixing them. When you work with us, you talk directly to the people building your site.
+          </p>
+        </div>
+        <div class="founders">
+          <article class="founder reveal">
+            <div class="avatar" aria-hidden="true">S</div>
+            <div><h3>Samuel</h3><p>Co-founder</p></div>
+          </article>
+          <article class="founder reveal" style="--d:.1s">
+            <div class="avatar" aria-hidden="true">M</div>
+            <div><h3>Matthew</h3><p>Co-founder</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section contact" id="contact">
+      <div class="contact-card reveal">
+        <div class="contact-copy">
+          <p class="eyebrow">Let's talk</p>
+          <h2>Get a free website review.</h2>
+          <p>Send us your current website and we'll reply with an honest look at what's working, what isn't, and how we'd fix it. Free, no strings.</p>
+          <a class="contact-email" href="mailto:hello@foundrydigital.com">hello@foundrydigital.com</a>
+        </div>
+        <form class="contact-form" id="contact-form" novalidate>
+          <label>Your name<input name="name" required autocomplete="name"></label>
+          <label>Business name<input name="business" required autocomplete="organization"></label>
+          <label>Email<input name="email" type="email" required autocomplete="email"></label>
+          <label><span>Current website <span class="opt">(optional)</span></span><input name="website" placeholder="www.yourbusiness.com"></label>
+          <label class="full"><span>Anything we should know? <span class="opt">(optional)</span></span><textarea name="message" rows="3"></textarea></label>
+          <button class="btn btn-primary full magnetic" type="submit">Send my request <span aria-hidden="true">→</span></button>
+          <p class="form-status full" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a href="#top" class="logo"><span class="logo-mark" aria-hidden="true">F</span><span>Foundry<span class="logo-dim"> Digital</span></span></a>
+    <p>Websites forged for local businesses.</p>
+    <p class="copy">© <span id="year"></span> Foundry Digital</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
