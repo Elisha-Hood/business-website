@@ -326,6 +326,174 @@ section('Contact form');
   await page.close();
 }
 
+// ---------- predictable navigation ----------
+section('Navigation: page tops, section anchors, Back/Forward, logo');
+for (const vp of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  const ctx = await browser.newContext({ viewport: vp, hasTouch: vp.width < 500 });
+  const page = await ctx.newPage();
+  const tag = `@${vp.width}`;
+  const settle = async () => { await page.waitForLoadState('load'); await page.waitForTimeout(700); };
+  const pos = () => page.evaluate(() => ({
+    path: location.pathname.split('/').pop() + location.hash, y: Math.round(scrollY),
+    h1: Math.round(document.querySelector('h1').getBoundingClientRect().top),
+    header: Math.round(document.querySelector('.nav').getBoundingClientRect().bottom),
+  }));
+  const clickNav = async (selector) => {
+    if (vp.width < 821 && selector.startsWith('header')) { await page.click('.nav-toggle'); await page.waitForTimeout(350); }
+    await page.click(selector);
+    await settle();
+  };
+
+  // every ordinary page link opens at the top with the heading visible below the header
+  await page.goto(BASE + 'index.html'); await settle();
+  for (const target of ['website-design.html', 'website-maintenance.html', 'work.html', 'contact.html']) {
+    await page.evaluate(() => scrollTo(0, document.body.scrollHeight / 2)); await page.waitForTimeout(150);
+    await page.click(`footer a[href="${target}"]`); await settle();
+    const p = await pos();
+    ok(p.path === target && p.y === 0, `${tag} footer link to ${target} should open at the top (got ${p.path} y=${p.y})`);
+    ok(p.h1 >= p.header && p.h1 < vp.height * 0.6, `${tag} ${target} heading should be visible below the header (h1 top ${p.h1}, header ${p.header})`);
+    const current = await page.evaluate((t) => [...document.querySelectorAll('#nav-links a[aria-current="page"]')].map((a) => a.getAttribute('href')).join(), target);
+    ok(current === target, `${tag} ${target} should be marked as the current page in the nav (got "${current}")`);
+  }
+
+  // section link from another page lands on the section, clear of the fixed header
+  await page.evaluate(() => scrollTo(0, 400)); await page.waitForTimeout(100);
+  await clickNav('header a[href="index.html#about"]');
+  let gap = await page.evaluate(() => Math.round(document.querySelector('#about-title').getBoundingClientRect().top - document.querySelector('.nav').getBoundingClientRect().bottom));
+  ok(gap >= 8 && gap <= 120, `${tag} About link should land with the heading just below the header (gap ${gap}px)`);
+  const aboutY = await page.evaluate(() => Math.round(scrollY));
+
+  // Back returns to the previous page and position; Forward returns to the section
+  await page.goBack(); await settle();
+  let p = await pos();
+  ok(p.path === 'contact.html' && Math.abs(p.y - 400) < 40, `${tag} Back should restore contact.html at its previous position (got ${p.path} y=${p.y})`);
+  await page.goForward(); await settle();
+  p = await pos();
+  ok(p.path === 'index.html#about' && Math.abs(p.y - aboutY) < 40, `${tag} Forward should restore the About section (got ${p.path} y=${p.y}, expected ~${aboutY})`);
+
+  // same-page section link (smooth) lands correctly
+  await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' })); await page.waitForTimeout(100);
+  await page.click('a.scroll-cue'); await page.waitForTimeout(1200);
+  gap = await page.evaluate(() => Math.round(document.querySelector('#services-title').getBoundingClientRect().top - document.querySelector('.nav').getBoundingClientRect().bottom));
+  ok(gap >= 8 && gap <= 140, `${tag} in-page link should land on "What we do" below the header (gap ${gap}px)`);
+
+  // the logo always returns to the homepage at the top
+  await page.goto(BASE + 'work.html'); await settle();
+  await page.evaluate(() => scrollTo(0, 900)); await page.waitForTimeout(100);
+  await page.click('header .logo'); await settle();
+  p = await pos();
+  ok(p.path === 'index.html' && p.y === 0, `${tag} logo should open the homepage at the top (got ${p.path} y=${p.y})`);
+  await page.evaluate(() => scrollTo(0, 1500)); await page.waitForTimeout(100);
+  await page.click('header .logo'); await settle();
+  p = await pos();
+  ok(p.y === 0, `${tag} logo on the homepage should return to the top (y=${p.y})`);
+
+  // mobile menu link closes the menu after navigation, scrolling stays free
+  if (vp.width < 821) {
+    await clickNav('header a[href="work.html"]');
+    const m = await page.evaluate(() => ({ exp: document.querySelector('.nav-toggle').getAttribute('aria-expanded'), ov: getComputedStyle(document.body).overflow, y: scrollY }));
+    ok(m.exp === 'false' && m.ov !== 'hidden' && m.y === 0, `${tag} menu navigation should land at the top with the menu closed (${JSON.stringify(m)})`);
+  }
+  await ctx.close();
+}
+
+// ---------- short landscape screens ----------
+section('Short landscape viewports');
+for (const vp of [{ width: 667, height: 375 }, { width: 844, height: 390 }]) {
+  const ctx = await browser.newContext({ viewport: vp, hasTouch: true, isMobile: true });
+  const page = await ctx.newPage();
+  await page.goto(BASE + 'index.html'); await page.waitForTimeout(500);
+  const tag = `${vp.width}x${vp.height}`;
+  const sw = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  ok(sw <= 0, `${tag} horizontal overflow ${sw}px`);
+  const mobile = await page.evaluate(() => getComputedStyle(document.querySelector('.nav-toggle')).display !== 'none');
+  if (mobile) {
+    await page.tap('.nav-toggle'); await page.waitForTimeout(400);
+    const links = await page.$$('#nav-links a');
+    for (const a of links) {
+      const box = await a.boundingBox();
+      ok(box && box.y >= 0 && box.y + box.height <= vp.height, `${tag} menu link "${(await a.textContent()).trim()}" should be visible without scrolling the menu`);
+    }
+    await page.tap('.nav-toggle'); await page.waitForTimeout(400);
+    ok(await page.evaluate(() => getComputedStyle(document.body).overflow !== 'hidden'), `${tag} scroll must not stay locked`);
+  } else {
+    // desktop nav: items must not overlap each other or the logo
+    const boxes = await page.$$eval('.logo, #nav-links > li', (els) => els.map((e) => e.getBoundingClientRect()).map((r) => [r.left, r.right, r.top, r.bottom]));
+    let overlap = false;
+    for (let i = 1; i < boxes.length; i++) if (boxes[i][0] < boxes[i - 1][1] - 1 && boxes[i][2] < boxes[i - 1][3]) overlap = true;
+    ok(!overlap, `${tag} desktop nav items overlap`);
+  }
+  await ctx.close();
+}
+
+// ---------- readable without JavaScript ----------
+section('Content without JavaScript');
+{
+  const ctx = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  for (const path of PAGES) {
+    await page.goto(BASE + path); await page.waitForTimeout(3000);
+    const hidden = await page.evaluate(() => [...document.querySelectorAll('h1, h2, .lede, .scard, .step, .work-feature')].filter((e) => getComputedStyle(e).opacity === '0').length);
+    ok(hidden === 0, `${path}: ${hidden} content blocks invisible without JavaScript`);
+  }
+  await ctx.close();
+}
+{
+  // script.js failing to load must not leave content hidden
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  await page.route('**/script.js', (r) => r.abort());
+  await page.goto(BASE + 'index.html'); await page.waitForTimeout(3000);
+  const hidden = await page.evaluate(() => [...document.querySelectorAll('.reveal')].filter((e) => getComputedStyle(e).opacity === '0').length);
+  ok(hidden === 0, `if script.js fails, ${hidden} reveal blocks stay hidden`);
+  await ctx.close();
+}
+
+// ---------- stable buttons, no review notes in the design ----------
+section('Button stability and customer-facing content');
+{
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(BASE + 'index.html'); await page.waitForTimeout(1500);
+  for (const sel of ['.hero-cta .btn-primary', '.hero-cta .btn-ghost']) {
+    const el = await page.$(sel);
+    const before = await el.boundingBox();
+    for (const [fx, fy] of [[0.05, 0.1], [0.95, 0.9], [0.5, 0.5]]) {
+      await page.mouse.move(before.x + before.width * fx, before.y + before.height * fy, { steps: 3 });
+      await page.waitForTimeout(80);
+      const now = await el.boundingBox();
+      const inside = before.x + before.width * fx >= now.x && before.x + before.width * fx <= now.x + now.width && before.y + before.height * fy >= now.y && before.y + before.height * fy <= now.y + now.height;
+      ok(inside, `${sel}: pointer at (${fx},${fy}) slipped off the button`);
+    }
+    ok(before.height >= 44, `${sel}: button height ${before.height} < 44`);
+  }
+  for (const path of PAGES) {
+    await page.goto(BASE + path);
+    const notes = await page.evaluate(() => document.querySelectorAll('[data-confirm], .confirm-tag, .confirm-block, .preview-pill').length);
+    ok(notes === 0, `${path}: internal approval notes visible in the design`);
+    const deadLinks = await page.evaluate(() => [...document.querySelectorAll('a')].filter((a) => !a.getAttribute('href') || a.getAttribute('href') === '#').length);
+    ok(deadLinks === 0, `${path}: ${deadLinks} links without a real destination`);
+  }
+  // first paint of subpage headings shouldn't wait on scroll observers
+  await page.goto(BASE + 'work.html'); await page.waitForTimeout(900);
+  ok(await page.evaluate(() => getComputedStyle(document.querySelector('h1')).opacity === '1'), 'subpage heading should be fully shown shortly after load');
+  await page.close();
+}
+
+// ---------- layout shift ----------
+section('Layout shift during load');
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  for (const path of PAGES) {
+    const page = await ctx.newPage();
+    await page.addInitScript(() => { window.__cls = 0; new PerformanceObserver((l) => l.getEntries().forEach((e) => { if (!e.hadRecentInput) window.__cls += e.value; })).observe({ type: 'layout-shift', buffered: true }); });
+    await page.goto(BASE + path, { waitUntil: 'networkidle' }); await page.waitForTimeout(1500);
+    const cls = await page.evaluate(() => window.__cls);
+    ok(cls < 0.05, `${path}: cumulative layout shift ${cls.toFixed(3)}`);
+    await page.close();
+  }
+  await ctx.close();
+}
+
 await browser.close();
 console.log(`\n${failures ? '✖' : '✔'} ${passes} passed, ${failures} failed`);
 process.exit(failures ? 1 : 0);

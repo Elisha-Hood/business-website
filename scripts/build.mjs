@@ -6,7 +6,7 @@
 //
 // The source files at the repository root are already preview-safe and can be served directly.
 // Production indexing only happens when production.indexable is deliberately set to true, and the build
-// refuses to do that while any "to confirm" markers (data-confirm) remain.
+// refuses to do that while any <!-- confirm: ... --> review markers remain.
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -71,7 +71,7 @@ if (mode === 'production') {
     warnings.push('Contact form has no endpoint: it keeps its visible "not connected" notice.');
   }
   if (indexable) {
-    const confirmLeft = pages.flatMap((f) => [...sources[f].matchAll(/data-confirm="([^"]+)"/g)].map((m) => `${f}: ${m[1]}`));
+    const confirmLeft = pages.flatMap((f) => [...sources[f].matchAll(/<!-- confirm: (.*?) -->/g)].map((m) => `${f}: ${m[1]}`));
     if (confirmLeft.length) fail(`Indexing is enabled but these items are still marked "to confirm":\n  - ${[...new Set(confirmLeft)].join('\n  - ')}\nConfirm them, update the copy, and remove the markers first.`);
     if (!prod.business || prod.business.confirmed !== true) fail('Indexing is enabled but production.business.confirmed is not true.');
     if (!endpoint) fail('Indexing is enabled but the contact form has no endpoint.');

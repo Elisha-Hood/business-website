@@ -3,6 +3,35 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
+  window.siteReady = true;
+  const root = document.documentElement;
+
+  /* ---------- predictable landing position ----------
+     New page loads open at the top (browser default); links with a #section land on that section
+     below the fixed header; Back/Forward and reload keep the browser's own restored position. */
+  const navEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+  const navType = navEntry ? navEntry.type : 'navigate';
+  const landOnHash = () => {
+    if (!location.hash) return;
+    let target = null;
+    try { target = document.querySelector(decodeURIComponent(location.hash)); } catch { /* invalid selector */ }
+    if (target) target.scrollIntoView({ block: 'start', behavior: 'instant' });
+  };
+  if (navType === 'navigate') {
+    if (location.hash) {
+      // re-align once fonts and late layout have settled, so the heading isn't left under the header
+      addEventListener('load', landOnHash, { once: true });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(landOnHash));
+    } else if (window.top !== window) {
+      // When this page is shown inside a frame (e.g. a review preview), bring its top into view on a new page.
+      try { root.scrollIntoView({ block: 'start', behavior: 'instant' }); } catch { /* ignore */ }
+    }
+  }
+  // Smooth scrolling only for in-page jumps after load, never for the initial landing or history restores.
+  addEventListener('load', () => {
+    if (!reduceMotionMq.matches) requestAnimationFrame(() => root.classList.add('smooth-scroll'));
+  }, { once: true });
+
   /* ---------- year ---------- */
   $$('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
 
@@ -72,6 +101,9 @@
     // tabbing out of the header closes it
     nav.addEventListener('focusout', (e) => { if (isOpen() && e.relatedTarget && !nav.contains(e.relatedTarget)) setMenu(false); });
     // switching between mobile and desktop width resets the menu, without animating the switch
+    // returning via Back/Forward from the page cache must never show a stale open menu
+    addEventListener('pageshow', (e) => { if (e.persisted) setMenu(false); });
+    addEventListener('hashchange', () => setMenu(false));
     mobileMq.addEventListener('change', () => {
       nav.classList.add('no-anim');
       setMenu(false);
@@ -89,7 +121,7 @@
       }
     });
   }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-  $$('.reveal').forEach((el) => { if (!el.closest('.hero')) io.observe(el); });
+  $$('.reveal').forEach((el) => { if (!el.closest('.hero, .page-hero')) io.observe(el); });
 
   /* ---------- before/after slider ---------- */
   const compare = $('.compare');
@@ -183,11 +215,14 @@
 
   /* ---------- magnetic buttons ---------- */
   if (!reduceMotionMq.matches && matchMedia('(hover: hover)').matches) {
+    // a gentle pull, capped so the button never slides out from under the pointer
+    const cap = (v, m) => Math.max(-m, Math.min(m, v));
     $$('.magnetic').forEach((btn) => {
       btn.addEventListener('pointermove', (e) => {
         const r = btn.getBoundingClientRect();
-        const x = (e.clientX - r.left - r.width / 2) * 0.18;
-        const y = (e.clientY - r.top - r.height / 2) * 0.3;
+        if (e.buttons) return;
+        const x = cap((e.clientX - r.left - r.width / 2) * 0.12, 6);
+        const y = cap((e.clientY - r.top - r.height / 2) * 0.2, 4);
         btn.style.transform = `translate(${x}px, ${y}px)`;
       });
       btn.addEventListener('pointerleave', () => { btn.style.transform = ''; });
@@ -227,7 +262,8 @@
     });
     const resize = () => {
       const nw = hero.clientWidth, nh = hero.clientHeight;
-      const ndpr = Math.min(devicePixelRatio || 1, 2);
+      // lighter canvas on small screens: the glow is soft, so 1.5x looks the same and costs less
+      const ndpr = Math.min(devicePixelRatio || 1, innerWidth < 700 ? 1.5 : 2);
       if (nw === w && nh === h && ndpr === dpr) return;
       const sx = w ? nw / w : 1, sy = h ? nh / h : 1;
       w = nw; h = nh; dpr = ndpr;

@@ -24,7 +24,7 @@ The source files are **preview-safe by default**:
 - `_headers` sends `X-Robots-Tag: noindex, nofollow` on hosts that support it (Cloudflare Pages, Netlify). GitHub Pages ignores it, so the meta tag is the fallback.
 - `robots.txt` allows crawling so crawlers can actually *see* the noindex directive.
 - There are no canonical URLs or sitemap, because the production domain isn't confirmed yet.
-- Items needing approval are marked with dashed blue “to confirm” tags (`data-confirm`), and a small “Preview build” badge is shown.
+- Items needing approval are recorded as `<!-- confirm: … -->` comments in the page source (not shown to visitors), and the footer says “Preview build, not the live site”.
 - The contact form runs in a labelled preview mode and never sends anything.
 
 Production output comes from the build script and `site.config.json`:
@@ -34,7 +34,7 @@ node scripts/build.mjs                       # preview build → dist/ (same saf
 node scripts/build.mjs --mode=production     # production build → dist/
 ```
 
-The production build refuses to run without a confirmed `production.origin`. If `production.indexable` is `true`, it also refuses while any `data-confirm` marker remains, while `business.confirmed` is false, or while the contact form has no endpoint. When it does run with indexing enabled, it removes the noindex tag, adds canonical / `og:url` / `og:image` tags, structured data limited to confirmed facts, `sitemap.xml`, and a `robots.txt` that points to it.
+The production build refuses to run without a confirmed `production.origin`. If `production.indexable` is `true`, it also refuses while any `<!-- confirm: … -->` marker remains, while `business.confirmed` is false, or while the contact form has no endpoint. When it does run with indexing enabled, it removes the noindex tag, adds canonical / `og:url` / `og:image` tags, structured data limited to confirmed facts, `sitemap.xml`, and a `robots.txt` that points to it.
 
 ## Local preview
 
@@ -45,7 +45,7 @@ python3 -m http.server 8080      # from the repository root
 
 ## Tests
 
-`tests/smoke.mjs` runs Playwright browser checks: layout at 360/390/768/1024/1440px, console and network errors, internal links, mobile menu behaviour, keyboard focus, animations and offscreen pausing, touch scrolling over the comparison slider, reduced motion, form validation, and honest submission states.
+`tests/smoke.mjs` runs Playwright browser checks: layout at 360/390/768/1024/1440px and short landscape screens, page-top and #section navigation with Back/Forward, console and network errors, internal links, mobile menu behaviour, keyboard focus, animations and offscreen pausing, touch scrolling over the comparison slider, reduced motion, form validation, and honest submission states.
 
 ```bash
 python3 -m http.server 8080 &

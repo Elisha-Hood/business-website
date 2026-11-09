@@ -3,7 +3,7 @@
 Nothing here should be done until you decide to adopt the preview. **Don't merge `preview/site-refinement` into `main` before step 3.** `main` currently deploys straight to GitHub Pages from the branch root, and the source pages carry `noindex`. Merging without switching to the production build would publish a noindexed site with preview badges and a disconnected form.
 
 ## 1. Confirm details
-Work through [`CONFIRM-BEFORE-LAUNCH.md`](CONFIRM-BEFORE-LAUNCH.md). Update the copy, then remove each `<span class="confirm-tag" data-confirm=…>` marker and each `confirm-block` note.
+Work through [`CONFIRM-BEFORE-LAUNCH.md`](CONFIRM-BEFORE-LAUNCH.md). Update the copy, then remove each `<!-- confirm: … -->` comment from the page source.
 
 ## 2. Configure production
 In `site.config.json`:
@@ -38,7 +38,7 @@ If you use a custom domain, add it in Settings → Pages and at your DNS provide
 - [ ] `curl -I https://…/` shows no `X-Robots-Tag: noindex`.
 - [ ] Share preview (`og:image`, title, description) looks right, e.g. by pasting a URL into a messaging app.
 - [ ] Contact form: a real submission arrives at the confirmed inbox, and success shows only after it's accepted.
-- [ ] No “Preview build” badge, and no dashed “to confirm” tags.
+- [ ] No “Preview build” note in the footer.
 - [ ] Run `BASE=https://…/ node tests/smoke.mjs`. Its noindex assertions are written for the preview, so expect those to fail in production. Everything else should pass.
 
 ## 5. Search Console
