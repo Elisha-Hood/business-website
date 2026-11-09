@@ -1,6 +1,6 @@
 # Launch checklist
 
-Nothing here should be done until you decide to adopt the preview. **Don't merge `preview/site-refinement` into `main` before step 3.** `main` currently deploys straight to GitHub Pages from the branch root, and the source pages carry `noindex`. Merging without switching to the production build would publish a noindexed site with preview badges and a disconnected form.
+The refined site is live on `main` (GitHub Pages, deployed straight from the branch root) as of 2026-11-09, **with indexing still switched off**: every page carries `noindex`, and the contact form says plainly that it isn't connected. Use this checklist to finish the launch properly: confirm the remaining details, connect the form, and only then enable indexing.
 
 ## 1. Confirm details
 Work through [`CONFIRM-BEFORE-LAUNCH.md`](CONFIRM-BEFORE-LAUNCH.md). Update the copy, then remove each `<!-- confirm: … -->` comment from the page source.

@@ -1,0 +1,10 @@
+# GitHub Pages (classic branch deploy) runs Jekyll on this repository.
+# Publish only the website itself: keep internal docs, tests and tooling off the live site.
+exclude:
+  - README.md
+  - docs/
+  - tests/
+  - scripts/
+  - dist/
+  - site.config.json
+  - node_modules/

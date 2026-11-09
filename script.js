@@ -370,7 +370,7 @@
 
       const endpoint = (form.dataset.endpoint || '').trim();
       if (!endpoint) {
-        setStatus('Preview only: your entries look good, but this form isn’t connected to an inbox yet, so nothing was sent.', 'info');
+        setStatus('Your entries look good, but this form isn’t connected to an inbox yet, so nothing was sent.', 'info');
         return;
       }
 

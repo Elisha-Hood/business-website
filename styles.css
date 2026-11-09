@@ -679,7 +679,7 @@ img, svg { display: block; }
 
 /* featured project */
 .work-feature {
-  display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(28px, 5vw, 56px); align-items: start;
+  display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(28px, 5vw, 56px); align-items: center;
   padding: clamp(24px, 4vw, 48px); border-radius: 28px; background: var(--card); border: 1px solid var(--line);
 }
 .work-copy h2, .work-copy h3 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); margin-bottom: 1rem; }
@@ -772,3 +772,11 @@ img, svg { display: block; }
   .nav-links .nav-cta .btn { min-height: 44px; }
   .nav-links .nav-cta { margin-top: 4px; padding-top: 6px; }
 }
+
+/* featured project screenshot */
+.project-shot {
+  margin: 0; border-radius: 18px; overflow: hidden; background: #10241c;
+  border: 1px solid rgba(233, 225, 207, .14); box-shadow: 0 30px 80px -40px rgba(0, 0, 0, .85);
+}
+.project-shot img { display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; }
+.project-shot .pv-bar { background: #1a2c25; }
