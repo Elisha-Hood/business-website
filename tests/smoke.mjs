@@ -282,6 +282,19 @@ section('Contact form');
   ok(/nothing was sent/i.test(status) && !/received/i.test(status), `preview mode must say nothing was sent ("${status}")`);
   ok(posted === 0, 'preview mode must not send any request');
 
+  // regression: with a bad value typed, tapping Send must submit (no layout shift swallowing the tap)
+  {
+    const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const mp = await mctx.newPage();
+    await mp.goto(BASE + 'contact.html');
+    await mp.fill('#f-email', 'jane@');
+    await mp.tap('button[type="submit"]');
+    await mp.waitForTimeout(300);
+    const t = await mp.evaluate(() => [...document.querySelectorAll('[aria-invalid="true"]')].map((e) => e.name).join());
+    ok(t === 'name,email', `tapping Send after typing a bad email should validate the whole form (got "${t}")`);
+    await mctx.close();
+  }
+
   // simulate a configured endpoint
   const scenario = async (handler) => {
     await page.goto(BASE + 'contact.html');

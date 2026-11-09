@@ -475,7 +475,7 @@ img, svg { display: block; }
   box-shadow: 0 0 0 4px rgba(255, 122, 26, .18);
 }
 .contact-form [aria-invalid="true"] { border-color: #ff6b6b; }
-.contact-form [aria-invalid="true"]:focus { box-shadow: 0 0 0 4px rgba(255, 107, 107, .2); }
+.contact-form [aria-invalid="true"]:focus { border-color: #ff6b6b; box-shadow: 0 0 0 4px rgba(255, 107, 107, .2); }
 .field-error { margin: 0; font-size: .88rem; color: #ff9b9b; }
 .field-error:empty { display: none; }
 .field-hint { margin: 0; font-size: .85rem; color: var(--muted); }

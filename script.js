@@ -316,7 +316,7 @@
 
     // re-check a field as soon as the visitor fixes it
     form.addEventListener('input', (e) => { if (e.target.getAttribute('aria-invalid') === 'true') validateField(e.target); });
-    form.addEventListener('focusout', (e) => { if (e.target.value && rules[e.target.name]) validateField(e.target); });
+    // (No validation on blur: an error appearing as you tap "Send" would shift the button and swallow the tap.)
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
