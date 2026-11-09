@@ -1,0 +1,4 @@
+# Preview: crawling is allowed on purpose so crawlers can see each page's noindex directive.
+# Blocking here would hide that directive. The production build replaces this file.
+User-agent: *
+Allow: /

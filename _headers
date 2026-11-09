@@ -1,0 +1,8 @@
+# Preview default (Cloudflare Pages / Netlify format). Ignored by GitHub Pages, which cannot set headers;
+# every page also carries <meta name="robots" content="noindex, nofollow"> as the fallback.
+# The production build (scripts/build.mjs --mode=production) writes its own _headers without noindex
+# only when production.indexable is true.
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

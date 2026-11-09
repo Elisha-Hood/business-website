@@ -1,0 +1,16 @@
+{
+  "$comment": "Preview and production settings are kept separate. Nothing here makes the site indexable until production.indexable is deliberately set to true. See docs/LAUNCH-CHECKLIST.md.",
+  "preview": {
+    "indexable": false
+  },
+  "production": {
+    "origin": null,
+    "basePath": "/",
+    "indexable": false,
+    "contactEndpoint": null,
+    "business": {
+      "name": "Foundry Digital",
+      "confirmed": false
+    }
+  }
+}
