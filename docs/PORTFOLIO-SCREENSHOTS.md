@@ -1,22 +1,20 @@
 # Impressive Finishes before/after: screenshot record
 
-Status: **"after" captured; "before" blocked.** The homepage still uses the existing comparison until a faithful "before" image is available.
+Used on the homepage ("Our work") and on `work.html`. All four images are real browser screenshots (Chromium via Playwright, headless), taken on **2026-11-09** at the top of each page after web fonts and every image in the first screen had loaded. No retouching apart from WebP compression; no browser chrome.
 
-## After (redesign preview)
+| Side | Source | Desktop file (1440 × 900 CSS px, 1×) | Phone file (390 × 844 CSS px, 2×) |
+| --- | --- | --- | --- |
+| Before | https://impressivefinishes.com/ — the business's **current live website** (WordPress / Elementor 4.3.5) | `assets/work/if-before-desktop-1440x900.webp` (+ `-720x450` for small screens) | `assets/work/if-before-mobile-390x844@2x.webp` |
+| After | https://impressive-finishes.pages.dev/ — **our redesign, on a preview address** (sends `noindex, nofollow`; launch on the client's domain not yet verified) | `assets/work/if-after-desktop-1440x900.webp` (+ `-720x450`) | `assets/work/if-after-mobile-390x844@2x.webp` |
 
-| | Desktop | Mobile |
-| --- | --- | --- |
-| File | `assets/work/if-after-desktop-1440x900.webp` | `assets/work/if-after-mobile-390x844@2x.webp` |
-| Source | https://impressive-finishes.pages.dev/ | same |
-| Captured | 2026-11-09 (Chromium/Playwright, headless) | same |
-| Viewport | 1440 × 900 CSS px, 1× scale | 390 × 844 CSS px, 2× scale (iPhone-class) |
-| Position | Top of page (scrollY 0), first screen only | same |
-| Checks before capture | Both web fonts loaded (Archivo, Newsreader); every image in the first screen loaded (logo, hero photo) | same |
-| Status of the site | Redesign preview on a staging address; the page sends `noindex, nofollow`. Production launch not verified. | same |
-| Contact details shown | Business phone number 770-569-5999 only (no personal details) | same |
+Checks at capture time: same business on both (phone 770-569-5999); before used Poppins and Raleway, after used Archivo and Newsreader, all loaded; no broken images; no popups or cookie banners in view. The only contact detail shown is the business phone number.
 
-## Before (original website)
+## Why "before" is the current site, not the 2019 original
 
-- Intended source: Wayback Machine capture of `http://www.impressivefinishes.com/`, timestamp **20190321043320** (2019-03-21 04:33:20 UTC).
-- Verified via the archive.org availability API (`archive.org/wayback/available`) that this capture exists with status 200, and that it is the most recent capture returned for any date after 2019. Earlier captures: 2016-04-10, 2017-07-14, 2018-06-17.
-- **Not captured:** `web.archive.org` (and `archive.ph`) are blocked by the egress policy of the environment this work was done in ("Blocked by egress policy"), so the archived page, its stylesheet, logo and photos could not be loaded or visually verified. No "before" image has been made or approximated.
+The intended "before" was the original pre-WordPress site from the Wayback Machine (`http://www.impressivefinishes.com/`, capture **20190321043320**, i.e. 2019-03-21 04:33:20 UTC; confirmed via the archive.org availability API as the most recent capture, with earlier ones from 2016-04-10, 2017-07-14 and 2018-06-17). `web.archive.org` and `archive.ph` are explicitly blocked by the egress policy of the environment this was built in ("Blocked by egress policy"), and the original asset host `static.sites.yp.com` does not respond, so that capture could not be rendered. At the owner's request the current live site is used instead, and it is labelled "current site", not "archived".
+
+To switch to the 2019 version later: replace the two `if-before-*` files with screenshots of the archived page at the same sizes, and change the "Before · current site" label and the caption in the page generator to "Previous website · archived 2019".
+
+## When the redesign launches
+
+Re-capture "after" from the production domain, change "After · redesign preview" and the caption, and drop the "Redesign preview, not launched yet" chip on `work.html`.

@@ -494,6 +494,49 @@ section('Layout shift during load');
   await ctx.close();
 }
 
+// ---------- real before/after comparison ----------
+section('Impressive Finishes comparison (home + Our work, desktop + phone)');
+for (const [vp, mobile] of [[{ width: 1440, height: 900 }, false], [{ width: 390, height: 844 }, true]]) {
+  for (const path of ['index.html', 'work.html']) {
+    const ctx = await browser.newContext({ viewport: vp, hasTouch: mobile, isMobile: mobile });
+    const page = await ctx.newPage();
+    const tag = `${path} @${vp.width}`;
+    await page.goto(BASE + path);
+    await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.compare').scrollIntoView({ block: 'center' }); });
+    await page.waitForTimeout(3600);
+    const info = await page.evaluate(() => [...document.querySelectorAll('.compare-shots img')].map((i) => ({
+      src: i.currentSrc.split('/').pop(), ok: i.complete && i.naturalWidth > 0, alt: i.alt.length,
+      w: i.getAttribute('width'), h: i.getAttribute('height'),
+      box: i.getBoundingClientRect().toJSON(),
+    })));
+    ok(info.length === 2, `${tag}: expected 2 screenshots, found ${info.length}`);
+    for (const i of info) {
+      ok(i.ok, `${tag}: screenshot ${i.src} did not load`);
+      ok(i.alt > 40 && i.w && i.h, `${tag}: screenshot ${i.src} needs a description and explicit size`);
+      ok(mobile ? /mobile/.test(i.src) : /desktop/.test(i.src), `${tag}: wrong capture for this screen (${i.src})`);
+    }
+    if (info.length === 2) {
+      const [a, b] = info.map((i) => i.box);
+      ok(Math.abs(a.x - b.x) < 1 && Math.abs(a.y - b.y) < 1 && Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1, `${tag}: before and after are not aligned in the same frame`);
+    }
+    const text = await page.evaluate(() => document.querySelector('main').innerText);
+    ok(!/Riverside|concept demo|fictional|made-up/i.test(text), `${tag}: fictional demo wording still present`);
+    ok(/before/i.test(await page.textContent('.tag-before')) && /after/i.test(await page.textContent('.tag-after')), `${tag}: before/after labels missing`);
+    // drag + keyboard on this page's slider
+    const box = await (await page.$('.compare')).boundingBox();
+    if (!mobile) {
+      await page.mouse.move(box.x + box.width * 0.5, box.y + box.height / 2);
+      await page.mouse.down(); await page.mouse.move(box.x + box.width * 0.3, box.y + box.height / 2, { steps: 4 }); await page.mouse.up();
+      const pos = parseFloat(await page.evaluate(() => document.querySelector('.compare').style.getPropertyValue('--pos')));
+      ok(Math.abs(pos - 30) < 3, `${tag}: drag should move the divider to ~30% (got ${pos})`);
+      await page.focus('.compare-range'); await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft');
+      const keyed = parseFloat(await page.evaluate(() => document.querySelector('.compare').style.getPropertyValue('--pos')));
+      ok(keyed < pos, `${tag}: arrow keys should move the divider (${pos} → ${keyed})`);
+    }
+    await ctx.close();
+  }
+}
+
 await browser.close();
 console.log(`\n${failures ? '✖' : '✔'} ${passes} passed, ${failures} failed`);
 process.exit(failures ? 1 : 0);
