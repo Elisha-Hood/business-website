@@ -124,15 +124,14 @@
   $$('.reveal').forEach((el) => { if (!el.closest('.hero, .page-hero')) io.observe(el); });
 
   /* ---------- before/after slider ---------- */
-  const compare = $('.compare');
-  if (compare) {
+  $$('.compare').forEach((compare) => {
     const range = $('.compare-range', compare);
     let userTouched = false;
     const setPos = (v) => {
       const n = Math.min(100, Math.max(0, Number(v)));
       compare.style.setProperty('--pos', n + '%');
       range.value = Math.round(n);
-      range.setAttribute('aria-valuetext', `${Math.round(n)}% of the before version shown`);
+      range.setAttribute('aria-valuetext', `${Math.round(n)}% previous website, ${100 - Math.round(n)}% redesign`);
     };
     const posFromEvent = (e) => {
       const r = compare.getBoundingClientRect();
@@ -202,7 +201,7 @@
       }, { threshold: 0.5 });
       introIO.observe(compare);
     }
-  }
+  });
 
   /* ---------- card spotlight follows cursor ---------- */
   $$('.glow').forEach((card) => {
