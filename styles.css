@@ -264,6 +264,20 @@ img, svg { display: block; }
 }
 .tag-before { left: 16px; }
 .tag-after { right: 16px; }
+/* phones: the slider plays by itself; this pauses/resumes it */
+.compare-play {
+  position: absolute; left: 50%; bottom: 12px; translate: -50% 0; z-index: 4;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.18);
+  display: grid; place-items: center; padding: 0; cursor: pointer;
+  background: rgba(14, 12, 10, .78); color: var(--text); backdrop-filter: blur(6px);
+}
+.compare-play svg { width: 18px; height: 18px; fill: currentColor; }
+.compare-play:focus-visible { outline: 3px solid var(--molten-3); outline-offset: 2px; }
+.compare-play[hidden] { display: none; }
+.compare.is-auto .compare-handle span { width: 44px; height: 44px; font-size: .95rem; }
+.hint-auto { display: none; }
+.compare-autoplay .hint-auto { display: inline; }
+.compare-autoplay .hint-drag { display: none; }
 
 /* ---------- cards: problem / approach ---------- */
 .problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -708,7 +722,9 @@ img, svg { display: block; }
 .compare-links a:hover { text-decoration-color: var(--molten-3); }
 @media (max-width: 700px) {
   /* genuine phone captures of both sites, not shrunken desktop screenshots */
-  .compare.compare-shots { aspect-ratio: 780 / 1688; }
+  /* show the top of the phone screen (header + hero) instead of the whole very tall page,
+     and never let the frame be taller than the screen it's viewed on */
+  .compare.compare-shots { width: 100%; aspect-ratio: 780 / 1250; max-height: 72svh; }
   .compare-shots .compare-tag { top: 10px; bottom: auto; }
   .compare-shots .tag-long { display: none; }
   .compare-caption { flex-direction: column; }

@@ -212,7 +212,12 @@ section('Touch scrolling over the comparison slider');
   const page = await ctx.newPage();
   await page.goto(BASE + 'index.html');
   await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.compare').scrollIntoView({ block: 'center' }); });
-  await page.waitForTimeout(3500); // let the intro sweep finish
+  const getPos = () => page.evaluate(() => parseFloat(document.querySelector('.compare').style.getPropertyValue('--pos')));
+  ok(await page.evaluate(() => document.querySelector('.compare').classList.contains('is-auto')), 'phone slider should be in autoplay mode');
+  const a0 = await getPos(); await page.waitForTimeout(1200); const a1 = await getPos();
+  ok(Math.abs(a1 - a0) > 5, `phone slider should play by itself (${a0} → ${a1})`);
+  const fr = await (await page.$('.compare')).boundingBox();
+  ok(fr.height <= 844 * 0.72 + 1 && fr.height < fr.width * 1.7, `phone slider frame should fit on screen (${Math.round(fr.width)}×${Math.round(fr.height)})`);
   const box = await (await page.$('.compare')).boundingBox();
   const before = await page.evaluate(() => ({ y: scrollY, pos: document.querySelector('.compare').style.getPropertyValue('--pos') }));
   const cdp = await ctx.newCDPSession(page);
@@ -226,12 +231,16 @@ section('Touch scrolling over the comparison slider');
   await swipe(200, cy + 100, 205, cy - 150);
   const after = await page.evaluate(() => ({ y: scrollY, pos: document.querySelector('.compare').style.getPropertyValue('--pos') }));
   ok(after.y > before.y + 100, `vertical swipe on the slider should scroll the page (${before.y} → ${after.y})`);
-  ok(after.pos === before.pos, `vertical swipe should not move the divider (${before.pos} → ${after.pos})`);
   const box2 = await (await page.$('.compare')).boundingBox();
   const cy2 = Math.round(box2.y + box2.height / 2);
   await swipe(300, cy2, 80, cy2 + 5);
   const swiped = parseFloat(await page.evaluate(() => document.querySelector('.compare').style.getPropertyValue('--pos')));
-  ok(swiped < parseFloat(after.pos) - 20, `horizontal swipe should move the divider (${after.pos} → ${swiped})`);
+  const fingerPos = ((80 - box2.x) / box2.width) * 100;
+  ok(Math.abs(swiped - fingerPos) < 6, `horizontal swipe should move the divider to the finger (~${Math.round(fingerPos)} → ${swiped})`);
+  await page.waitForTimeout(1500);
+  ok(Math.abs(await getPos() - swiped) < 1, 'autoplay should wait after a swipe instead of fighting the finger');
+  await page.click('.compare-play'); const p0 = await getPos(); await page.waitForTimeout(5500);
+  ok(Math.abs(await getPos() - p0) < 1, 'pause button should stop the autoplay');
   await ctx.close();
 }
 

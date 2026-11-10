@@ -123,13 +123,21 @@
   }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
   $$('.reveal').forEach((el) => { if (!el.closest('.hero, .page-hero')) io.observe(el); });
 
-  /* ---------- before/after slider ---------- */
+  /* ---------- before/after slider ----------
+     Computers: drag (or use the arrow keys), with a one-off intro sweep.
+     Phones: plays by itself, sweeping between the old site and the redesign while it's on screen.
+     A swipe or tap takes over for a few seconds, and a pause button stops it for good. */
+  const phoneMq = window.matchMedia('(max-width: 700px)');
+  const autoplayWanted = () => phoneMq.matches && !reduceMotionMq.matches;
+
   $$('.compare').forEach((compare) => {
     const range = $('.compare-range', compare);
     let userTouched = false;
+    let pos = 50;
     const setPos = (v) => {
       const n = Math.min(100, Math.max(0, Number(v)));
-      compare.style.setProperty('--pos', n + '%');
+      pos = n;
+      compare.style.setProperty('--pos', n.toFixed(1) + '%');
       range.value = Math.round(n);
       range.setAttribute('aria-valuetext', `${Math.round(n)}% previous website, ${100 - Math.round(n)}% redesign`);
     };
@@ -138,7 +146,71 @@
       return ((e.clientX - r.left) / r.width) * 100;
     };
 
-    range.addEventListener('input', () => { userTouched = true; setPos(range.value); });
+    /* --- autoplay (phones) --- */
+    const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    // each step starts wherever the divider is now, so resuming after a swipe is seamless
+    const steps = [{ to: 8, ms: 1700 }, { hold: 2000 }, { to: 92, ms: 1700 }, { hold: 1500 }];
+    let auto = false, visible = false, stoppedByUser = false, resumeAt = 0;
+    let stepIdx = 0, stepStart = 0, stepFrom = 50, raf = 0;
+
+    const playBtn = document.createElement('button');
+    playBtn.type = 'button';
+    playBtn.className = 'compare-play';
+    playBtn.hidden = true;
+    compare.appendChild(playBtn);
+    const setBtn = () => {
+      const paused = stoppedByUser;
+      playBtn.setAttribute('aria-label', paused ? 'Play the before and after animation' : 'Pause the before and after animation');
+      playBtn.innerHTML = paused
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
+    };
+
+    const startStep = (i, now) => { stepIdx = i % steps.length; stepStart = now; stepFrom = pos; };
+    const frame = (now) => {
+      raf = 0;
+      if (!auto || !visible || stoppedByUser || document.hidden) return;
+      if (now < resumeAt) { raf = requestAnimationFrame(frame); return; }
+      if (resumeAt) { // coming back after a swipe: head for whichever end is further away
+        resumeAt = 0;
+        startStep(pos > 50 ? 0 : 2, now);
+      }
+      const s = steps[stepIdx];
+      const t = Math.min(1, (now - stepStart) / (s.ms || s.hold));
+      if (s.to !== undefined) setPos(stepFrom + (s.to - stepFrom) * ease(t));
+      if (t >= 1) startStep(stepIdx + 1, now);
+      raf = requestAnimationFrame(frame);
+    };
+    const kick = () => {
+      if (raf || !auto || !visible || stoppedByUser || document.hidden) return;
+      stepStart = performance.now(); stepFrom = pos;
+      raf = requestAnimationFrame(frame);
+    };
+    const holdForUser = () => { if (auto) resumeAt = performance.now() + 4000; };
+
+    const applyMode = () => {
+      auto = autoplayWanted();
+      compare.classList.toggle('is-auto', auto);
+      root.classList.toggle('compare-autoplay', auto);
+      playBtn.hidden = !auto;
+      setBtn();
+      if (auto) { userTouched = true; startStep(0, performance.now()); kick(); }
+    };
+    playBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      stoppedByUser = !stoppedByUser;
+      resumeAt = 0;
+      setBtn();
+      if (!stoppedByUser) { startStep(pos > 50 ? 0 : 2, performance.now()); kick(); }
+    });
+    new IntersectionObserver(([en]) => { visible = en.isIntersecting; kick(); }, { threshold: 0.35 }).observe(compare);
+    document.addEventListener('visibilitychange', kick);
+    phoneMq.addEventListener('change', applyMode);
+    reduceMotionMq.addEventListener('change', applyMode);
+
+    /* --- manual control (all screens) --- */
+    range.addEventListener('input', () => { userTouched = true; holdForUser(); setPos(range.value); });
 
     // Mouse: press anywhere and drag. Touch: only a mostly-horizontal drag moves the slider,
     // so vertical swipes still scroll the page (the frame uses touch-action: pan-y).
@@ -149,6 +221,7 @@
       if (drag.active) {
         e.preventDefault();
         userTouched = true;
+        holdForUser();
         compare.setPointerCapture(e.pointerId);
         compare.classList.add('dragging');
         setPos(posFromEvent(e));
@@ -165,37 +238,42 @@
         compare.setPointerCapture(e.pointerId);
         compare.classList.add('dragging');
       }
+      holdForUser();
       setPos(posFromEvent(e));
     });
     const endDrag = (e) => {
       if (!drag || drag.id !== e.pointerId) return;
       // a simple tap (no drag) on touch jumps the divider there
       if (!drag.active && e.type === 'pointerup') { userTouched = true; setPos(posFromEvent(e)); }
+      if (e.type === 'pointerup') holdForUser();
       drag = null;
       compare.classList.remove('dragging');
     };
     compare.addEventListener('pointerup', endDrag);
     compare.addEventListener('pointercancel', endDrag);
 
-    // Intro sweep: show the "after", then settle in the middle
-    if (!reduceMotionMq.matches) {
+    applyMode();
+
+    // Computers: intro sweep shows the "after", then settles in the middle
+    if (!auto && !reduceMotionMq.matches) {
       const introIO = new IntersectionObserver(([en]) => {
         if (!en.isIntersecting) return;
         introIO.disconnect();
         const keys = [[0, 92], [900, 8], [1900, 50]];
         const start = performance.now() + 500;
-        const ease = (t) => 1 - Math.pow(1 - t, 3);
+        const easeOut = (t) => 1 - Math.pow(1 - t, 3);
         const tick = (now) => {
-          if (userTouched) return;
+          if (userTouched || auto) return;
           const t = now - start;
           if (t < 0) return requestAnimationFrame(tick);
           let i = 0;
           while (i < keys.length - 2 && t > keys[i + 1][0]) i++;
           const [t0, v0] = keys[i], [t1, v1] = keys[i + 1];
           const p = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
-          setPos((v0 + (v1 - v0) * ease(p)).toFixed(1));
+          setPos(v0 + (v1 - v0) * easeOut(p));
           if (t < keys[keys.length - 1][0]) requestAnimationFrame(tick);
         };
+        if (auto) return;
         setPos(92);
         requestAnimationFrame(tick);
       }, { threshold: 0.5 });
