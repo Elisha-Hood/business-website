@@ -110,10 +110,13 @@ for (const file of pages) {
       const img = origin + basePath + 'assets/og-image.png';
       seo.push(`<meta property="og:image" content="${esc(img)}">`, '<meta property="og:image:width" content="1200">', '<meta property="og:image:height" content="630">', `<meta name="twitter:image" content="${esc(img)}">`);
     }
-    // Structured data only for confirmed facts: business name + URL, and breadcrumb structure.
+    // Structured data only for confirmed facts: business name + URL, service area, and breadcrumb structure.
     if (indexable && prod.business && prod.business.confirmed === true && file !== '404.html') {
       const ld = file === 'index.html'
-        ? [{ '@context': 'https://schema.org', '@type': 'Organization', name: prod.business.name, url: origin + basePath },
+        ? [{ '@context': 'https://schema.org', '@type': 'ProfessionalService', name: prod.business.name, url: origin + basePath,
+             description: 'Website design, redesign and support for small businesses.',
+             ...(Array.isArray(prod.business.areaServed) && prod.business.areaServed.length
+               ? { areaServed: prod.business.areaServed.map((name) => ({ '@type': 'Place', name })) } : {}) },
            { '@context': 'https://schema.org', '@type': 'WebSite', name: prod.business.name, url: origin + basePath }]
         : [{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: origin + basePath },
