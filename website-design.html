@@ -37,11 +37,17 @@
         <span class="nav-toggle-text">Menu</span>
       </button>
       <ul id="nav-links" class="nav-links">
-        <li><a href="website-design.html" aria-current="page">Website design</a></li>
-        <li><a href="website-maintenance.html">Support</a></li>
-        <li><a href="work.html">Our work</a></li>
-        <li><a href="index.html#about">About</a></li>
-        <li class="nav-cta"><a href="contact.html" class="btn btn-small">Free website review</a></li>
+        <li class="nav-item has-sub is-current">
+          <button class="nav-sub-toggle" type="button" aria-expanded="false" aria-controls="nav-services">Services<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></button>
+          <span class="nav-group-label" aria-hidden="true">Services</span>
+          <ul class="nav-sub" id="nav-services" aria-label="Services">
+            <li><a href="website-design.html" aria-current="page"><span class="sub-title">Website design</span><span class="sub-desc">New sites and redesigns</span></a></li>
+            <li><a href="website-maintenance.html"><span class="sub-title">Maintenance &amp; support</span><span class="sub-desc">Updates, fixes and old setups</span></a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="work.html">Work</a></li>
+        <li class="nav-item"><a href="index.html#about">About</a></li>
+        <li class="nav-item nav-cta"><a href="contact.html" class="btn btn-small">Contact</a></li>
       </ul>
     </nav>
   </header>
@@ -54,7 +60,7 @@
         <h1 class="reveal" id="page-title">Website design and redesign for small businesses</h1>
         <p class="lede reveal" style="--d:.1s">A professional website that explains what you do in plain language, works well on a phone, and makes it simple for customers to get in touch. Whether you’re starting fresh or replacing a site that has fallen behind.</p>
         <div class="hero-cta reveal" style="--d:.2s">
-          <a href="contact.html" class="btn btn-primary magnetic">Get a free website review <span aria-hidden="true">→</span></a>
+          <a href="contact.html?intent=project" class="btn btn-primary magnetic">Discuss your project <span aria-hidden="true">→</span></a>
           <a href="work.html" class="btn btn-ghost">See our work</a>
         </div>
       </div>
@@ -160,7 +166,8 @@
           <p>That’s what the free review is for. Share your current site, or tell us about your business, and we’ll suggest a sensible starting point.</p>
         </div>
         <div class="cta-actions">
-          <a href="contact.html" class="btn btn-primary magnetic">Get a free website review <span aria-hidden="true">→</span></a>
+          <a href="contact.html?intent=project" class="btn btn-primary magnetic">Discuss your project <span aria-hidden="true">→</span></a>
+          <a href="contact.html?intent=review" class="btn btn-ghost">Get a free website review</a>
         </div>
       </div>
     </section>

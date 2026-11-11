@@ -37,11 +37,17 @@
         <span class="nav-toggle-text">Menu</span>
       </button>
       <ul id="nav-links" class="nav-links">
-        <li><a href="website-design.html">Website design</a></li>
-        <li><a href="website-maintenance.html">Support</a></li>
-        <li><a href="work.html">Our work</a></li>
-        <li><a href="index.html#about">About</a></li>
-        <li class="nav-cta"><a href="contact.html" class="btn btn-small">Free website review</a></li>
+        <li class="nav-item has-sub">
+          <button class="nav-sub-toggle" type="button" aria-expanded="false" aria-controls="nav-services">Services<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></button>
+          <span class="nav-group-label" aria-hidden="true">Services</span>
+          <ul class="nav-sub" id="nav-services" aria-label="Services">
+            <li><a href="website-design.html"><span class="sub-title">Website design</span><span class="sub-desc">New sites and redesigns</span></a></li>
+            <li><a href="website-maintenance.html"><span class="sub-title">Maintenance &amp; support</span><span class="sub-desc">Updates, fixes and old setups</span></a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="work.html">Work</a></li>
+        <li class="nav-item"><a href="index.html#about">About</a></li>
+        <li class="nav-item nav-cta"><a href="contact.html" class="btn btn-small">Contact</a></li>
       </ul>
     </nav>
   </header>
@@ -58,13 +64,12 @@
           <span class="line"><span>to <em class="molten">choose you.</em></span></span>
         </h1>
         <p class="hero-sub reveal" style="--d:.5s">
-          We design, rebuild and look after websites for small businesses, so customers can quickly see what you
-          offer and how to reach you. Straightforward costs, practical help with outdated systems, and support
-          after launch, wherever you’re based.
+          We design, rebuild and look after websites for small businesses, so customers can quickly see
+          what you offer and how to reach you.
         </p>
         <div class="hero-cta reveal" style="--d:.65s">
-          <a href="contact.html" class="btn btn-primary magnetic">Get a free website review <span aria-hidden="true">→</span></a>
-          <a href="work.html" class="btn btn-ghost">See our work</a>
+          <a href="contact.html?intent=project" class="btn btn-primary magnetic">Discuss your project <span aria-hidden="true">→</span></a>
+          <a href="contact.html?intent=review" class="btn btn-ghost">Get a free website review</a>
         </div>
       </div>
       <a href="#services" class="scroll-cue" aria-label="Scroll to what we do"><span></span></a>
@@ -108,13 +113,13 @@
     </section>
 
     <!-- WORK: real before & after -->
-    <section class="section section-stage" aria-labelledby="work-title">
+    <section class="section section-stage home-work" aria-labelledby="work-title">
       <div class="section-head" id="work">
         <p class="eyebrow reveal">Our work</p>
         <h2 class="reveal" id="work-title">Impressive Finishes, before and after.</h2>
-        <p class="lede reveal">We redesigned the website for Impressive Finishes, a family-owned painting company in North Metro Atlanta, and it’s now live. The new site gives each service its own page, keeps navigation simple, and puts call, text and estimate buttons within easy reach, especially on phones. <span class="hint-drag">Drag the slider to compare.</span><span class="hint-auto">Watch it switch, or swipe across it to compare.</span></p>
+        <p class="lede reveal">We redesigned the website for Impressive Finishes, a family-owned painting company in North Metro Atlanta. It’s now live, with a page for each service and call, text and estimate buttons always in reach. <span class="hint-drag">Drag the divider to compare.</span><span class="hint-auto">Watch it switch, or swipe across it to compare.</span></p>
       </div>
-      <figure class="compare-wrap compare-figure stage-wide reveal">
+      <figure class="compare-wrap compare-figure home-compare reveal">
         <div class="compare compare-shots" style="--pos:50%">
           <div class="compare-pane after">
             <picture>
@@ -134,17 +139,11 @@
           <label class="sr-only" for="compare-range">Before and after slider for the Impressive Finishes website. Use the left and right arrow keys to show more of the previous site or of our redesign.</label>
           <input id="compare-range" type="range" min="0" max="100" value="50" class="compare-range">
         </div>
-        <figcaption class="compare-caption">
-          <span><strong>Before:</strong> the previous impressivefinishes.com, captured just before launch. <strong>After:</strong> our redesign, now live at <a href="https://impressivefinishes.com/" target="_blank" rel="noopener">impressivefinishes.com<span class="sr-only"> (opens in a new tab)</span></a>. Both captured in November 2026 at the same screen size.</span>
-          <span class="compare-links">View larger:
-            <a href="assets/work/if-before-desktop-1440x900.webp">before (desktop)</a> ·
-            <a href="assets/work/if-after-live-desktop-1440x900.webp">after (desktop)</a> ·
-            <a href="assets/work/if-before-mobile-390x844@2x.webp">before (phone)</a> ·
-            <a href="assets/work/if-after-live-mobile-390x844@2x.webp">after (phone)</a>
-          </span>
+        <figcaption class="compare-caption compare-caption-slim">
+          <span><strong>Before:</strong> the previous site. <strong>After:</strong> our redesign, live at <a href="https://impressivefinishes.com/" target="_blank" rel="noopener">impressivefinishes.com<span class="sr-only"> (opens in a new tab)</span></a>.</span>
+          <a class="text-link" href="work.html#impressive-finishes">Explore the project story <span aria-hidden="true">→</span></a>
         </figcaption>
       </figure>
-      <p class="section-foot reveal"><a class="text-link" href="work.html#impressive-finishes">More about this project</a></p>
 
       <a class="project-teaser reveal" href="work.html#proglide-academy">
         <span class="project-teaser-media"><img src="assets/work/pg-desktop-720x450.webp" srcset="assets/work/pg-desktop-720x450.webp 720w, assets/work/pg-desktop-1440x900.webp 1440w" sizes="(max-width: 700px) 100vw, 760px" width="720" height="450" loading="lazy" decoding="async" alt=""></span>
@@ -152,7 +151,7 @@
           <span class="eyebrow">Also built by us</span>
           <strong>ProGlide Academy</strong>
           <span>A brand-new site for a drone pilot course, built around the instructor’s own aerial footage.</span>
-          <span class="text-link">See the project <span aria-hidden="true">→</span></span>
+          <span class="text-link">Explore the project story <span aria-hidden="true">→</span></span>
         </span>
       </a>
     </section>
@@ -195,7 +194,7 @@
             <span class="step-dot" aria-hidden="true"></span>
             <p class="step-label">Ongoing help</p>
             <h3>Still here after launch.</h3>
-            <p>After launch we’re here for questions and updates, with ongoing support if you want it.</p>
+            <p>Questions and updates after launch, with ongoing support if you want it.</p>
           </li>
         </ol>
       </div>
@@ -203,17 +202,25 @@
 
     <!-- ABOUT -->
     <!-- confirm: business name -->
-    <section class="section about" aria-labelledby="about-title">
-      <div class="about-grid" id="about">
-        <div>
+    <section class="section about team" aria-labelledby="about-title">
+      <div class="team-grid" id="about">
+        <div class="team-copy">
           <p class="eyebrow reveal">About us</p>
           <h2 class="reveal" id="about-title">A small team, on purpose.</h2>
           <p class="reveal">Foundry Digital is run by two partners who work directly with every client. You talk to the people designing and building your site, so nothing gets lost in a hand-off.</p>
         </div>
-        <div class="founders reveal">
-          <div class="founder"><div class="avatar" aria-hidden="true">S</div><div><h3>Samuel</h3><p>Co-founder</p></div></div>
-          <div class="founder"><div class="avatar" aria-hidden="true">J</div><div><h3>James</h3><p>Co-founder</p></div></div>
-        </div>
+        <ul class="team-people reveal">
+          <li class="person">
+            <span class="person-mark" aria-hidden="true"><span>S</span></span>
+            <h3>Samuel</h3>
+            <p>Co-founder</p>
+          </li>
+          <li class="person">
+            <span class="person-mark" aria-hidden="true"><span>J</span></span>
+            <h3>James</h3>
+            <p>Co-founder</p>
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -225,7 +232,8 @@
           <p>We’ll look at your site on a phone and a computer and reply with honest notes: what’s working, what’s getting in the way, and what we’d suggest. No website yet? Tell us about your business and we’ll suggest a sensible place to start.</p>
         </div>
         <div class="cta-actions">
-          <a href="contact.html" class="btn btn-primary magnetic">Get a free website review <span aria-hidden="true">→</span></a>
+          <a href="contact.html?intent=review" class="btn btn-primary magnetic">Get a free website review <span aria-hidden="true">→</span></a>
+          <a href="contact.html?intent=project" class="btn btn-ghost">Discuss a new project</a>
         </div>
       </div>
     </section>

@@ -37,11 +37,17 @@
         <span class="nav-toggle-text">Menu</span>
       </button>
       <ul id="nav-links" class="nav-links">
-        <li><a href="website-design.html">Website design</a></li>
-        <li><a href="website-maintenance.html">Support</a></li>
-        <li><a href="work.html">Our work</a></li>
-        <li><a href="index.html#about">About</a></li>
-        <li class="nav-cta"><a href="contact.html" class="btn btn-small" aria-current="page">Free website review</a></li>
+        <li class="nav-item has-sub">
+          <button class="nav-sub-toggle" type="button" aria-expanded="false" aria-controls="nav-services">Services<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></button>
+          <span class="nav-group-label" aria-hidden="true">Services</span>
+          <ul class="nav-sub" id="nav-services" aria-label="Services">
+            <li><a href="website-design.html"><span class="sub-title">Website design</span><span class="sub-desc">New sites and redesigns</span></a></li>
+            <li><a href="website-maintenance.html"><span class="sub-title">Maintenance &amp; support</span><span class="sub-desc">Updates, fixes and old setups</span></a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="work.html">Work</a></li>
+        <li class="nav-item"><a href="index.html#about">About</a></li>
+        <li class="nav-item nav-cta is-current"><a href="contact.html" class="nav-contact" aria-current="page">Contact</a></li>
       </ul>
     </nav>
   </header>
@@ -49,17 +55,22 @@
   <main id="main">
     <section class="page-hero page-hero-compact" aria-labelledby="page-title">
       <div class="page-hero-inner">
-        <nav class="breadcrumbs reveal" aria-label="Breadcrumb"><ol><li><a href="index.html">Home</a></li><li><span aria-current="page">Free website review</span></li></ol></nav>
-        <p class="eyebrow reveal">Free, no obligation</p>
-        <h1 class="reveal" id="page-title">Get a free website review</h1>
-        <p class="lede reveal" style="--d:.1s">Share your current site, or tell us about your business if you don’t have one yet. We’ll reply with honest notes and a suggested next step.</p>
+        <nav class="breadcrumbs reveal" aria-label="Breadcrumb"><ol><li><a href="index.html">Home</a></li><li><span aria-current="page">Contact</span></li></ol></nav>
+        <p class="eyebrow reveal">Contact</p>
+        <h1 class="reveal" id="page-title">Let’s talk about your website</h1>
+        <p class="lede reveal" style="--d:.1s">Ask for a free review of the site you have, or tell us about the one you need. Either way, we’ll reply by email with honest notes and a suggested next step.</p>
       </div>
     </section>
 
-    <section class="section section-tight-top" aria-label="Review details and request form">
+    <section class="section section-tight-top" aria-label="Contact form">
       <div class="contact-card contact-layout">
         <form class="contact-form" id="contact-form" data-endpoint="" novalidate aria-labelledby="form-title">
-          <h2 class="panel-title full" id="form-title">Request your review</h2>
+          <h2 class="panel-title full" id="form-title"><span data-intent-show="review">Request your free review</span><span data-intent-show="project">Tell us about your project</span></h2>
+          <fieldset class="intent full">
+            <legend>What can we help with?</legend>
+            <label class="intent-option"><input type="radio" name="intent" value="review" checked><span><strong>Review my site</strong><small>Free, honest notes</small></span></label>
+            <label class="intent-option"><input type="radio" name="intent" value="project"><span><strong>Plan a new site</strong><small>New site or redesign</small></span></label>
+          </fieldset>
           <!-- preview-only:start -->
           <p class="form-mode full" id="form-mode">This form isn’t connected to an inbox yet, so nothing you enter will be sent.</p>
           <!-- preview-only:end -->
@@ -79,15 +90,15 @@
             <p class="field-error" id="f-business-error"></p>
           </div>
           <div class="field">
-            <label for="f-website">Current website <span class="opt">(optional)</span></label>
+            <label for="f-website"><span data-intent-show="review">Your current website</span><span data-intent-show="project">Current website, if you have one</span> <span class="opt">(optional)</span></label>
             <input id="f-website" name="website" type="text" inputmode="url" maxlength="200" placeholder="yourbusiness.com" autocomplete="url" autocapitalize="off" spellcheck="false" enterkeyhint="next" aria-describedby="f-website-hint f-website-error">
-            <p class="field-hint" id="f-website-hint">No website yet? Leave this blank.</p>
+            <p class="field-hint" id="f-website-hint">No website yet? That’s fine, leave this blank.</p>
             <p class="field-error" id="f-website-error"></p>
           </div>
           <div class="field full">
-            <label for="f-message">What would you like help with? <span class="opt">(optional)</span></label>
+            <label for="f-message"><span data-intent-show="review">Anything you’d like us to look at?</span><span data-intent-show="project">What do you have in mind?</span> <span class="opt">(optional)</span></label>
             <textarea id="f-message" name="message" rows="4" maxlength="2000" enterkeyhint="send" aria-describedby="f-message-hint f-message-error"></textarea>
-            <p class="field-hint" id="f-message-hint">For example: “Our site is hard to use on phones” or “We need help getting into our domain account.”</p>
+            <p class="field-hint" id="f-message-hint"><span data-intent-show="review">For example: “Our site is hard to use on phones” or “We need help getting into our domain account.”</span><span data-intent-show="project">For example: what your business does, the pages you think you need, and any timing.</span></p>
             <p class="field-error" id="f-message-error"></p>
           </div>
           <div class="hp" aria-hidden="true">
@@ -96,7 +107,7 @@
           </div>
           <div class="form-actions full">
             <button class="btn btn-primary btn-block" type="submit">
-              <span class="btn-label">Send my request</span><span class="btn-arrow" aria-hidden="true">→</span><span class="spinner" aria-hidden="true"></span>
+              <span class="btn-label" data-label-review="Request my review" data-label-project="Send project details">Request my review</span><span class="btn-arrow" aria-hidden="true">→</span><span class="spinner" aria-hidden="true"></span>
             </button>
             <p class="form-note">We’ll only use these details to reply to your request.</p>
           </div>
@@ -104,16 +115,27 @@
         </form>
 
         <div class="contact-copy">
-          <h2 class="panel-title" id="review-includes">What we look at</h2>
-          <ul class="ticks ticks-compact">
-            <li>How your site works on a phone and a computer, the way customers see it</li>
-            <li>Whether it’s clear what you offer and how to get in touch</li>
-            <li>Page speed and search basics, like titles and descriptions</li>
-            <li>If you’d like, your domain, hosting and email setup</li>
-          </ul>
+          <div data-intent-show="review">
+            <h2 class="panel-title" id="review-includes">What we look at</h2>
+            <ul class="ticks ticks-compact">
+              <li>How your site works on a phone and a computer, the way customers see it</li>
+              <li>Whether it’s clear what you offer and how to get in touch</li>
+              <li>Page speed and search basics, like titles and descriptions</li>
+              <li>If you’d like, your domain, hosting and email setup</li>
+            </ul>
+          </div>
+          <div data-intent-show="project">
+            <h2 class="panel-title">Helpful to mention</h2>
+            <ul class="ticks ticks-compact">
+              <li>What your business does and who your customers are</li>
+              <li>The pages or features you think you need</li>
+              <li>Any sites you like the look of</li>
+              <li>Timing, and whether you already have a domain</li>
+            </ul>
+          </div>
           <h2 class="panel-title spaced">What happens next</h2>
           <ol class="next-steps">
-            <li><span><strong>We reply by email</strong> with what’s working, what’s getting in the way, and what we’d suggest.</span></li>
+            <li><span><strong>We reply by email</strong> with honest notes and what we’d suggest.</span></li>
             <li><span><strong>If you want to go further,</strong> we talk through options and agree a clear scope and cost.</span></li>
             <li><span><strong>If not, that’s fine.</strong> The notes are yours to keep.</span></li>
           </ol>
