@@ -1204,3 +1204,53 @@ html[data-intent="project"] [data-intent-show="review"] { display: none; }
 .story-next[hidden], .btn[hidden] { display: none !important; }
 .scene-actions .btn-ghost { background: rgba(255, 255, 255, .03); color: var(--text) !important; border-color: var(--line); box-shadow: none; }
 .scene-actions .btn-ghost:hover { border-color: rgba(255, 140, 60, .5); background: rgba(255, 122, 26, .08); }
+
+/* ---------- round 4: tap-to-switch on phones, titles above every project picture ---------- */
+.compare-flip {
+  position: absolute; inset: 0; z-index: 5; display: block; width: 100%; height: 100%; padding: 0; margin: 0;
+  border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.compare-flip[hidden] { display: none; }
+.compare-flip:focus-visible { outline: 3px solid var(--molten-3); outline-offset: -3px; border-radius: inherit; }
+.compare-flip::after {
+  content: attr(data-hint) "  ⇄"; position: absolute; left: 50%; bottom: 14px; translate: -50% 0; white-space: nowrap;
+  padding: 9px 16px; border-radius: 999px; background: rgba(14, 12, 10, .82); color: var(--text);
+  font: 600 .84rem Inter, sans-serif; border: 1px solid rgba(255, 255, 255, .14);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.compare.is-tap .compare-handle { display: none; }
+.compare.is-tap .compare-pane.before { transition: clip-path .7s var(--ease); }
+.compare.is-tap .compare-tag { transition: opacity .35s var(--ease); }
+.compare.is-tap .tag-before, .compare.is-tap.showing-before .tag-after { opacity: 0; }
+.compare.is-tap.showing-before .tag-before { opacity: 1; }
+
+/* stories: business name, then the progress bar, then the pictures */
+.story-head { grid-template-columns: 1fr; }
+.story-progress { width: 100%; margin-top: 14px; }
+.story-progress li { flex: 1; }
+.story-progress button { width: 100%; min-width: 0; }
+
+/* homepage: ProGlide framed exactly like Impressive Finishes */
+.home-work > .home-project { max-width: 980px; margin: clamp(64px, 8vw, 104px) auto 0; }
+.home-shot { margin: 0; }
+.home-shot-media {
+  display: block; aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--line);
+  box-shadow: 0 40px 120px -40px rgba(255, 94, 26, .45), 0 0 0 1px rgba(255, 255, 255, .02);
+}
+.home-shot-media img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; transition: transform 1.2s var(--ease); }
+.home-shot-media:hover img { transform: scale(1.02); }
+
+/* the contact button stays orange on the contact page, with a ring to show it's the current page */
+.nav-links .btn[aria-current="page"] { background: var(--molten); color: #1a0d03 !important; box-shadow: 0 0 0 2px rgba(255, 194, 77, .45); }
+.nav-links .btn[aria-current="page"]::after { display: none; }
+
+/* Stories: lay the stage out before script.js arrives, so a slow script never makes the page jump.
+   (.js is set in <head>; it is removed again if the script never starts, and the plain stacked layout returns.) */
+.story-progress { height: 46px; }
+.story-progress button { height: 46px; min-height: 0; align-content: center; padding-top: 0; padding-bottom: 0; }
+.js .story .story-stage { gap: 0; }
+.js .story .scene { grid-area: 1 / 1; }
+.js .story:not(.is-ready) .scene:not(:first-child) { visibility: hidden; }
+.js .story:not(.is-ready) .story-head { padding-bottom: 60px; }   /* progress: 46px + 14px margin */
+.js .story:not(.is-ready)::after { content: ""; display: block; height: 70px; }   /* Continue row: 52px + 18px margin */
+@media (max-width: 700px) { .js .story:not(.is-ready)::after { height: 66px; } }

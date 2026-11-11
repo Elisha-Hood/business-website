@@ -213,11 +213,16 @@ section('Touch scrolling over the comparison slider');
   await page.goto(BASE + 'index.html');
   await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.compare').scrollIntoView({ block: 'center' }); });
   const getPos = () => page.evaluate(() => parseFloat(document.querySelector('.compare').style.getPropertyValue('--pos')));
-  ok(await page.evaluate(() => document.querySelector('.compare').classList.contains('is-auto')), 'phone slider should be in autoplay mode');
-  const a0 = await getPos(); await page.waitForTimeout(1200); const a1 = await getPos();
-  ok(Math.abs(a1 - a0) > 5, `phone slider should play by itself (${a0} → ${a1})`);
+  ok(await page.evaluate(() => document.querySelector('.compare').classList.contains('is-tap')), 'phone comparison should be in tap-to-switch mode');
+  const a0 = await getPos(); await page.waitForTimeout(1500); const a1 = await getPos();
+  ok(a0 === 0 && a1 === 0, `phone comparison should show the redesign and stay still (${a0} → ${a1})`);
   const fr = await (await page.$('.compare')).boundingBox();
-  ok(fr.height <= 844 * 0.72 + 1 && fr.height < fr.width * 1.7, `phone slider frame should fit on screen (${Math.round(fr.width)}×${Math.round(fr.height)})`);
+  ok(fr.height <= 844 * 0.72 + 1 && fr.height < fr.width * 1.7, `phone comparison frame should fit on screen (${Math.round(fr.width)}×${Math.round(fr.height)})`);
+  await page.tap('.compare-flip'); await page.waitForTimeout(900);
+  let t = await page.evaluate(() => ({ pos: parseFloat(document.querySelector('.compare').style.getPropertyValue('--pos')), label: document.querySelector('.compare-flip').getAttribute('aria-label'), before: getComputedStyle(document.querySelector('.tag-before')).opacity }));
+  ok(t.pos === 100 && /previous website\. Tap/.test(t.label) && t.before === '1', `a tap should show the previous site (${JSON.stringify(t)})`);
+  await page.tap('.compare-flip'); await page.waitForTimeout(900);
+  ok(await getPos() === 0, 'a second tap should show the redesign again');
   const box = await (await page.$('.compare')).boundingBox();
   const before = await page.evaluate(() => ({ y: scrollY, pos: document.querySelector('.compare').style.getPropertyValue('--pos') }));
   const cdp = await ctx.newCDPSession(page);
@@ -231,19 +236,7 @@ section('Touch scrolling over the comparison slider');
   await swipe(200, cy + 100, 205, cy - 150);
   const after = await page.evaluate(() => ({ y: scrollY, pos: document.querySelector('.compare').style.getPropertyValue('--pos') }));
   ok(after.y > before.y + 100, `vertical swipe on the slider should scroll the page (${before.y} → ${after.y})`);
-  // re-centre the slider so the horizontal swipe lands on it, not on the fixed header
-  await page.evaluate(() => document.querySelector('.compare').scrollIntoView({ block: 'center' }));
-  await page.waitForTimeout(200);
-  const box2 = await (await page.$('.compare')).boundingBox();
-  const cy2 = Math.round(Math.max(box2.y, 120) + Math.min(box2.height, 844 - 120) / 2);
-  await swipe(300, cy2, 80, cy2 + 5);
-  const swiped = parseFloat(await page.evaluate(() => document.querySelector('.compare').style.getPropertyValue('--pos')));
-  const fingerPos = ((80 - box2.x) / box2.width) * 100;
-  ok(Math.abs(swiped - fingerPos) < 6, `horizontal swipe should move the divider to the finger (~${Math.round(fingerPos)} → ${swiped})`);
-  await page.waitForTimeout(1500);
-  ok(Math.abs(await getPos() - swiped) < 1, 'autoplay should wait after a swipe instead of fighting the finger');
-  await page.click('.compare-play'); const p0 = await getPos(); await page.waitForTimeout(5500);
-  ok(Math.abs(await getPos() - p0) < 1, 'pause button should stop the autoplay');
+  ok(after.pos === before.pos, 'a vertical swipe must not switch the picture');
   await ctx.close();
 }
 
@@ -509,12 +502,11 @@ section('Layout shift during load');
 // ---------- real before/after comparison ----------
 section('Impressive Finishes comparison (home + Our work, desktop + phone)');
 for (const [vp, mobile] of [[{ width: 1440, height: 900 }, false], [{ width: 390, height: 844 }, true]]) {
-  for (const path of ['index.html', 'work.html']) {
+  for (const path of ['index.html']) {
     const ctx = await browser.newContext({ viewport: vp, hasTouch: mobile, isMobile: mobile });
     const page = await ctx.newPage();
     const tag = `${path} @${vp.width}`;
     await page.goto(BASE + path);
-    if (path === 'work.html') { await page.click('#impressive-finishes .story-progress li:nth-child(2) button'); await page.waitForTimeout(700); }
     await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.compare').scrollIntoView({ block: 'center' }); });
     await page.waitForTimeout(3600);
     const info = await page.evaluate(() => [...document.querySelectorAll('.compare-shots img')].map((i) => ({
@@ -597,7 +589,9 @@ section('Services menu and header consistency');
   ok(new Set(Object.values(heights)).size === 1, `header height should match on every page (${JSON.stringify(heights)})`);
   await page.goto(BASE + 'contact.html');
   const c = await page.evaluate(() => ({ btn: document.querySelectorAll('#nav-links .btn').length, cur: document.querySelector('#nav-links [aria-current="page"]')?.textContent.trim() }));
-  ok(c.btn === 0 && c.cur === 'Contact', `contact page: Contact should be the active item with no orange button (${JSON.stringify(c)})`);
+  ok(c.btn === 1 && c.cur === 'Contact', `contact page: Contact should stay the orange button and be marked current (${JSON.stringify(c)})`);
+  const bg = await page.evaluate(() => getComputedStyle(document.querySelector('#nav-links .btn')).backgroundImage);
+  ok(/gradient/.test(bg), `contact page: the Contact button should stay orange (${bg.slice(0, 40)})`);
   await page.goto(BASE + 'website-maintenance.html');
   ok(await page.evaluate(() => document.querySelector('.has-sub').classList.contains('is-current')), 'Services should be marked current on a service page');
   // keyboard
@@ -654,18 +648,7 @@ for (const [vp, touch] of [[{ width: 1280, height: 800 }, false], [{ width: 390,
   ok(s1.i === 1, `${tag}: tapping the image should advance (${s1.i})`);
   ok(Math.abs(s1.h - s0.h) <= 1, `${tag}: story height should stay put between scenes (${s0.h} → ${s1.h})`);
   ok(s1.y === s0.y, `${tag}: advancing should not scroll the page (${s0.y} → ${s1.y})`);
-  // drag the before/after: must not advance
-  await page.waitForTimeout(400);
-  const cb = await (await page.$(`${S} .scene.is-active .compare`)).boundingBox();
-  if (!touch) {
-    await page.mouse.move(cb.x + cb.width * 0.6, cb.y + cb.height / 2); await page.mouse.down();
-    await page.mouse.move(cb.x + cb.width * 0.25, cb.y + cb.height / 2, { steps: 6 }); await page.mouse.up();
-    await page.mouse.click(cb.x + cb.width * 0.4, cb.y + cb.height / 2);
-  } else {
-    await page.touchscreen.tap(cb.x + cb.width * 0.3, cb.y + cb.height / 2);
-  }
-  await page.waitForTimeout(500);
-  ok((await state()).i === 1, `${tag}: dragging or tapping the comparison must not advance the story`);
+  ok(await page.evaluate((s) => !document.querySelector(`${s} .compare`) && /if-before/.test(document.querySelector(`${s} .scene.is-active img`).currentSrc), S), `${tag}: second scene should be the previous site as a still picture, with no slider`);
   // enlarge does not advance either
   // continue button + progress revisit
   await page.click(`${S} .story-next`); await page.waitForTimeout(600);
@@ -700,10 +683,7 @@ for (const [vp, touch] of [[{ width: 1280, height: 800 }, false], [{ width: 390,
   ok(await idx() === 2, 'ArrowRight inside the story should advance');
   await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(400);
   ok(await idx() === 1, 'ArrowLeft inside the story should go back');
-  await page.focus('#compare-range-work');
-  const before = await page.evaluate(() => document.querySelector('#compare-range-work').value);
-  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(300);
-  ok(await idx() === 1 && await page.evaluate(() => document.querySelector('#compare-range-work').value) !== before, 'arrows on the slider should move the slider, not the story');
+  ok(await page.evaluate(() => document.querySelectorAll('.story .compare').length === 0), 'the stories should contain no slider');
   // both projects reachable without finishing one
   await page.click('.project-switch a[href="#proglide-academy"]'); await page.waitForTimeout(900);
   const gap = await page.evaluate(() => Math.round(document.querySelector('#pg-title').getBoundingClientRect().top - document.querySelector('.nav').getBoundingClientRect().bottom));

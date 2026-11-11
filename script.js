@@ -322,7 +322,8 @@
      Phones: plays by itself, sweeping between the old site and the redesign while it's on screen.
      A swipe or tap takes over for a few seconds, and a pause button stops it for good. */
   const phoneMq = window.matchMedia('(max-width: 700px)');
-  const autoplayWanted = () => phoneMq.matches && !reduceMotionMq.matches;
+  // Phones now switch with a tap instead of playing by themselves; the autoplay below stays switched off.
+  const autoplayWanted = () => false;
 
   $$('.compare').forEach((compare) => {
     const range = $('.compare-range', compare);
@@ -383,13 +384,39 @@
     };
     const holdForUser = () => { if (auto) resumeAt = performance.now() + 4000; };
 
+    /* --- tap to switch (phones): one tap shows the previous site, another shows the redesign --- */
+    let tap = false;
+    const flip = document.createElement('button');
+    flip.type = 'button';
+    flip.className = 'compare-flip';
+    flip.hidden = true;
+    compare.appendChild(flip);
+    const showBefore = (on) => {
+      setPos(on ? 100 : 0);
+      compare.classList.toggle('showing-before', on);
+      flip.setAttribute('aria-pressed', String(on));
+      flip.setAttribute('aria-label', on ? 'Showing the previous website. Tap to show our redesign.' : 'Showing our redesign. Tap to show the previous website.');
+      flip.dataset.hint = on ? 'Tap to see the redesign' : 'Tap to see the previous site';
+    };
+    flip.addEventListener('pointerdown', (e) => e.stopPropagation());
+    flip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userTouched = true;
+      showBefore(!compare.classList.contains('showing-before'));
+    });
+
     const applyMode = () => {
       auto = autoplayWanted();
       compare.classList.toggle('is-auto', auto);
-      root.classList.toggle('compare-autoplay', auto);
       playBtn.hidden = !auto;
       setBtn();
-      if (auto) { userTouched = true; startStep(0, performance.now()); kick(); }
+      tap = phoneMq.matches;
+      compare.classList.toggle('is-tap', tap);
+      root.classList.toggle('compare-autoplay', tap);   // swaps the "drag" hint for the "tap" hint
+      flip.hidden = !tap;
+      range.tabIndex = tap ? -1 : 0;
+      if (tap) { userTouched = true; showBefore(false); }
+      else if (compare.classList.contains('showing-before') || pos === 0) { compare.classList.remove('showing-before'); setPos(50); }
     };
     playBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
     playBtn.addEventListener('click', (e) => {
@@ -411,7 +438,7 @@
     // so vertical swipes still scroll the page (the frame uses touch-action: pan-y).
     let drag = null;
     compare.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || tap) return;
       drag = { id: e.pointerId, x: e.clientX, y: e.clientY, active: e.pointerType === 'mouse' };
       if (drag.active) {
         e.preventDefault();
