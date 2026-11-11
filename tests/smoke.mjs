@@ -116,7 +116,7 @@ section('Mobile menu');
   ok(box.height >= 44, `menu touch target too small (${box.height}px)`);
 
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(600); // closing transition is 300ms; leave headroom on a busy machine
   s = await state();
   ok(s.expanded === 'false' && s.visibility === 'hidden', 'Escape should close the menu');
   ok(/Menu/.test(s.active), `focus should return to the toggle after Escape (was on "${s.active}")`);
@@ -231,8 +231,11 @@ section('Touch scrolling over the comparison slider');
   await swipe(200, cy + 100, 205, cy - 150);
   const after = await page.evaluate(() => ({ y: scrollY, pos: document.querySelector('.compare').style.getPropertyValue('--pos') }));
   ok(after.y > before.y + 100, `vertical swipe on the slider should scroll the page (${before.y} → ${after.y})`);
+  // re-centre the slider so the horizontal swipe lands on it, not on the fixed header
+  await page.evaluate(() => document.querySelector('.compare').scrollIntoView({ block: 'center' }));
+  await page.waitForTimeout(200);
   const box2 = await (await page.$('.compare')).boundingBox();
-  const cy2 = Math.round(box2.y + box2.height / 2);
+  const cy2 = Math.round(Math.max(box2.y, 120) + Math.min(box2.height, 844 - 120) / 2);
   await swipe(300, cy2, 80, cy2 + 5);
   const swiped = parseFloat(await page.evaluate(() => document.querySelector('.compare').style.getPropertyValue('--pos')));
   const fingerPos = ((80 - box2.x) / box2.width) * 100;
@@ -544,6 +547,36 @@ for (const [vp, mobile] of [[{ width: 1440, height: 900 }, false], [{ width: 390
     }
     await ctx.close();
   }
+}
+
+// ---------- design evolution: reveals, journey, service rows ----------
+section('Reveals, journey line and service rows');
+for (const rm of ['no-preference', 'reduce']) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: rm });
+  const page = await ctx.newPage();
+  await page.goto(BASE + 'index.html'); await page.waitForTimeout(600);
+  for (let y = 0; y < 8000; y += 400) { await page.mouse.wheel(0, 400); await page.waitForTimeout(100); }
+  await page.waitForTimeout(1500);
+  const r = await page.evaluate(() => ({
+    stuck: [...document.querySelectorAll('main h2.reveal')].filter((h) => !h.classList.contains('in')).map((h) => h.textContent.slice(0, 30)),
+    masked: [...document.querySelectorAll('main h2')].filter((h) => getComputedStyle(h).maskImage !== 'none' && !h.classList.contains('in')).length,
+    fill: parseFloat(getComputedStyle(document.querySelector('.journey-steps')).getPropertyValue('--fill')),
+    lit: document.querySelectorAll('.journey-steps .step.lit').length,
+    numbered: [...document.querySelectorAll('.step-dot')].some((d) => getComputedStyle(d, '::before').content.match(/\d/)),
+  }));
+  ok(r.stuck.length === 0, `${rm}: headings never revealed after scrolling: ${r.stuck.join(' | ')}`);
+  ok(r.masked === 0, `${rm}: ${r.masked} headings still masked`);
+  ok(r.fill > 0.95 && r.lit === 4, `${rm}: journey line should be fully drawn after scrolling past (fill ${r.fill}, lit ${r.lit})`);
+  ok(!r.numbered, `${rm}: journey dots should not show numbers`);
+  if (rm === 'no-preference') {
+    // a whole service row is clickable
+    await page.evaluate(() => { document.documentElement.classList.remove('smooth-scroll'); document.querySelector('.offer').scrollIntoView({ block: 'center', behavior: 'instant' }); });
+    await page.waitForTimeout(500);
+    const box = await (await page.$('.offer')).boundingBox();
+    await Promise.all([page.waitForURL(/website-design\.html/, { timeout: 5000 }).catch(() => {}), page.mouse.click(box.x + 30, box.y + box.height / 2)]);
+    ok(/website-design\.html$/.test(page.url()), `clicking a service row should open its page (at ${page.url()})`);
+  }
+  await ctx.close();
 }
 
 await browser.close();
