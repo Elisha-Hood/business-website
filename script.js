@@ -123,12 +123,207 @@
   }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
   $$('.reveal').forEach((el) => { if (!el.closest('.hero, .page-hero')) io.observe(el); });
 
+
+  /* ---------- Services submenu (computers; on phones the links sit open in the menu panel) ---------- */
+  $$('.has-sub').forEach((item) => {
+    const btn = $('.nav-sub-toggle', item);
+    const panel = $('.nav-sub', item);
+    if (!btn || !panel) return;
+    let byHover = false, closeTimer = 0;
+    const isOpen = () => btn.getAttribute('aria-expanded') === 'true';
+    const set = (open, { focusToggle = false } = {}) => {
+      clearTimeout(closeTimer);
+      btn.setAttribute('aria-expanded', String(open));
+      item.classList.toggle('open', open);
+      if (!open) { byHover = false; if (focusToggle) btn.focus(); }
+    };
+    btn.addEventListener('click', () => {
+      if (isOpen() && byHover) { byHover = false; return; } // a click on a hover-opened menu keeps it open
+      set(!isOpen());
+    });
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); set(true); $('a', panel).focus(); }
+    });
+    panel.addEventListener('keydown', (e) => {
+      const links = $$('a', panel); const i = links.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown' && i > -1) { e.preventDefault(); links[(i + 1) % links.length].focus(); }
+      if (e.key === 'ArrowUp' && i > -1) { e.preventDefault(); i === 0 ? btn.focus() : links[i - 1].focus(); }
+    });
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) { e.preventDefault(); e.stopPropagation(); set(false, { focusToggle: true }); }
+    });
+    item.addEventListener('focusout', (e) => { if (isOpen() && e.relatedTarget && !item.contains(e.relatedTarget)) set(false); });
+    document.addEventListener('pointerdown', (e) => { if (isOpen() && !item.contains(e.target)) set(false); });
+    if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      item.addEventListener('pointerenter', (e) => {
+        if (e.pointerType !== 'mouse' || mobileMq.matches) return;
+        clearTimeout(closeTimer);
+        if (!isOpen()) { byHover = true; set(true); byHover = true; }
+      });
+      item.addEventListener('pointerleave', (e) => {
+        if (e.pointerType !== 'mouse' || !byHover) return;
+        closeTimer = setTimeout(() => set(false), 220);
+      });
+    }
+    mobileMq.addEventListener('change', () => set(false));
+  });
+
+  /* ---------- project stories: tap or click to advance ----------
+     Every scene is real HTML, so the content is readable without JavaScript and by search engines.
+     With JavaScript the scenes stack in one stage (so the page height never jumps) and only one shows. */
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const lightbox = (() => {
+    let dlg = null;
+    return (src, alt) => {
+      if (!dlg) {
+        dlg = document.createElement('dialog');
+        dlg.className = 'lightbox';
+        dlg.innerHTML = '<button type="button" class="lightbox-close" aria-label="Close larger image">×</button><img alt="">';
+        document.body.appendChild(dlg);
+        $('.lightbox-close', dlg).addEventListener('click', () => dlg.close());
+        dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+      }
+      const img = $('img', dlg);
+      img.src = src; img.alt = alt;
+      dlg.showModal();
+    };
+  })();
+
+  $$('[data-story]').forEach((story) => {
+    const scenes = $$('.scene', story);
+    const stage = $('.story-stage', story);
+    if (scenes.length < 2) return;
+    const name = $('.story-head h2', story).textContent.trim();
+    let index = 0;
+
+    // progress: compact, labelled, and every earlier or later scene can be revisited
+    const progress = document.createElement('ol');
+    progress.className = 'story-progress';
+    progress.setAttribute('aria-label', `${name}: story scenes`);
+    const dots = scenes.map((s, i) => {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = `<span class="seg" aria-hidden="true"></span><span class="seg-label">${s.dataset.label}</span>`;
+      b.setAttribute('aria-label', `${s.dataset.label} (scene ${i + 1} of ${scenes.length})`);
+      b.addEventListener('click', () => go(i, { focus: 'none' }));
+      li.appendChild(b); progress.appendChild(li);
+      return b;
+    });
+    $('.story-head', story).appendChild(progress);
+
+    // the continue control: a real button, styled as part of the scene
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'story-next';
+    const live = document.createElement('p');
+    live.className = 'sr-only'; live.setAttribute('aria-live', 'polite');
+    const controls = document.createElement('div');
+    controls.className = 'story-controls';
+    controls.append(next, live);
+    story.appendChild(controls);
+    next.addEventListener('click', () => go(index + 1, { focus: 'next' }));
+
+    // larger viewing for screenshots
+    scenes.forEach((s) => {
+      $$('.scene-media img', s).forEach((img) => {
+        if (img.closest('.compare, .collage')) return;
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'enlarge';
+        b.setAttribute('aria-label', `View larger: ${img.alt.split(':')[0]}`);
+        b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
+        b.addEventListener('click', () => lightbox(img.currentSrc || img.src, img.alt));
+        const phone = img.closest('.device-phone');
+        if (phone) phone.appendChild(b); else (img.closest('picture') || img).insertAdjacentElement('afterend', b);
+      });
+    });
+
+    // images in later scenes were set aside by an inline script so they don't compete with the first paint
+    const restore = (scene) => {
+      if (!scene) return;
+      $$('[data-srcset], [data-src]', scene).forEach((el) => {
+        ['srcset', 'src'].forEach((attr) => {
+          const v = el.getAttribute('data-' + attr);
+          if (v) { el.setAttribute(attr, v); el.removeAttribute('data-' + attr); }
+        });
+      });
+    };
+    const restoreAll = () => scenes.forEach(restore);
+    if (document.readyState === 'complete') setTimeout(restoreAll, 200);
+    else addEventListener('load', () => (window.requestIdleCallback ? requestIdleCallback(restoreAll, { timeout: 2500 }) : setTimeout(restoreAll, 600)), { once: true });
+
+    const cueText = () => (index === 0 ? (coarse ? 'Tap to explore' : 'Click to explore') : (coarse ? 'Tap to continue' : 'Continue'));
+    const render = (dir) => {
+      restore(scenes[index]); restore(scenes[index + 1]);
+      scenes.forEach((s, i) => {
+        const on = i === index;
+        s.classList.toggle('is-active', on);
+        s.inert = !on;
+        s.setAttribute('aria-hidden', String(!on));
+        if (on) s.dataset.dir = dir;
+      });
+      dots.forEach((d, i) => {
+        d.classList.toggle('is-done', i < index);
+        if (i === index) d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current');
+      });
+      const last = index === scenes.length - 1;
+      next.hidden = last;
+      next.innerHTML = `<span>${cueText()}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+      next.setAttribute('aria-label', last ? '' : `${cueText()}: ${scenes[index + 1].dataset.label}`);
+      story.dataset.scene = String(index);
+      story.classList.toggle('at-start', index === 0);
+      $$('.story-replay', story).forEach((r) => { r.hidden = !last; });
+      $$('.scene-media', story).forEach((m, i) => { m.dataset.cue = i === index && !last ? cueText() : ''; });
+      document.dispatchEvent(new CustomEvent('story:change', { detail: { story } }));
+    };
+    const go = (i, { focus = 'none' } = {}) => {
+      const target = Math.max(0, Math.min(scenes.length - 1, i));
+      if (target === index) return;
+      const dir = target > index ? 'fwd' : 'back';
+      const hadFocus = story.contains(document.activeElement);
+      index = target;
+      render(dir);
+      if (hadFocus && (!story.contains(document.activeElement) || document.activeElement.closest('[inert]') || document.activeElement.hidden)) focus = 'heading';
+      live.textContent = `${scenes[index].dataset.label}, scene ${index + 1} of ${scenes.length}`;
+      // keep focus somewhere sensible: on the continue button, or on the scene heading once it disappears
+      if (focus === 'next') (next.hidden ? $('h3', scenes[index]) : next).focus({ preventScroll: true });
+      if (focus === 'heading') $('h3', scenes[index]).focus({ preventScroll: true });
+    };
+
+    // tap or click the image area to advance; links, buttons, sliders, video and drags never advance
+    let down = null;
+    stage.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
+    stage.addEventListener('click', (e) => {
+      const moved = down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8;
+      down = null;
+      if (moved) return;
+      if (!e.target.closest('.scene-media')) return;
+      if (e.target.closest('a, button, input, select, textarea, label, video, audio, details, .compare')) return;
+      if (String(getSelection && getSelection()).length) return;
+      if (index < scenes.length - 1) go(index + 1, { focus: 'none' });
+    });
+
+    // keyboard: only while focus is inside this story, and never while a slider has focus
+    story.addEventListener('keydown', (e) => {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.target.closest('input, textarea, select, .compare')) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1, { focus: next.hidden ? 'heading' : 'keep' }); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1, { focus: 'keep' }); }
+    });
+
+    $$('.story-replay', story).forEach((r) => r.addEventListener('click', () => { go(0); next.focus({ preventScroll: true }); }));
+
+    story.classList.add('is-ready');
+    render('fwd');
+  });
+
   /* ---------- before/after slider ----------
      Computers: drag (or use the arrow keys), with a one-off intro sweep.
      Phones: plays by itself, sweeping between the old site and the redesign while it's on screen.
      A swipe or tap takes over for a few seconds, and a pause button stops it for good. */
   const phoneMq = window.matchMedia('(max-width: 700px)');
-  const autoplayWanted = () => phoneMq.matches && !reduceMotionMq.matches;
+  // Phones now switch with a tap instead of playing by themselves; the autoplay below stays switched off.
+  const autoplayWanted = () => false;
 
   $$('.compare').forEach((compare) => {
     const range = $('.compare-range', compare);
@@ -151,6 +346,7 @@
     // each step starts wherever the divider is now, so resuming after a swipe is seamless
     const steps = [{ to: 8, ms: 1700 }, { hold: 2000 }, { to: 92, ms: 1700 }, { hold: 1500 }];
     let auto = false, visible = false, stoppedByUser = false, resumeAt = 0;
+    const shown = () => !compare.closest('[inert]');
     let stepIdx = 0, stepStart = 0, stepFrom = 50, raf = 0;
 
     const playBtn = document.createElement('button');
@@ -169,7 +365,7 @@
     const startStep = (i, now) => { stepIdx = i % steps.length; stepStart = now; stepFrom = pos; };
     const frame = (now) => {
       raf = 0;
-      if (!auto || !visible || stoppedByUser || document.hidden) return;
+      if (!auto || !visible || stoppedByUser || document.hidden || !shown()) return;
       if (now < resumeAt) { raf = requestAnimationFrame(frame); return; }
       if (resumeAt) { // coming back after a swipe: head for whichever end is further away
         resumeAt = 0;
@@ -182,19 +378,45 @@
       raf = requestAnimationFrame(frame);
     };
     const kick = () => {
-      if (raf || !auto || !visible || stoppedByUser || document.hidden) return;
+      if (raf || !auto || !visible || stoppedByUser || document.hidden || !shown()) return;
       stepStart = performance.now(); stepFrom = pos;
       raf = requestAnimationFrame(frame);
     };
     const holdForUser = () => { if (auto) resumeAt = performance.now() + 4000; };
 
+    /* --- tap to switch (phones): one tap shows the previous site, another shows the redesign --- */
+    let tap = false;
+    const flip = document.createElement('button');
+    flip.type = 'button';
+    flip.className = 'compare-flip';
+    flip.hidden = true;
+    compare.appendChild(flip);
+    const showBefore = (on) => {
+      setPos(on ? 100 : 0);
+      compare.classList.toggle('showing-before', on);
+      flip.setAttribute('aria-pressed', String(on));
+      flip.setAttribute('aria-label', on ? 'Showing the previous website. Tap to show our redesign.' : 'Showing our redesign. Tap to show the previous website.');
+      flip.dataset.hint = on ? 'Tap to see the redesign' : 'Tap to see the previous site';
+    };
+    flip.addEventListener('pointerdown', (e) => e.stopPropagation());
+    flip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userTouched = true;
+      showBefore(!compare.classList.contains('showing-before'));
+    });
+
     const applyMode = () => {
       auto = autoplayWanted();
       compare.classList.toggle('is-auto', auto);
-      root.classList.toggle('compare-autoplay', auto);
       playBtn.hidden = !auto;
       setBtn();
-      if (auto) { userTouched = true; startStep(0, performance.now()); kick(); }
+      tap = phoneMq.matches;
+      compare.classList.toggle('is-tap', tap);
+      root.classList.toggle('compare-autoplay', tap);   // swaps the "drag" hint for the "tap" hint
+      flip.hidden = !tap;
+      range.tabIndex = tap ? -1 : 0;
+      if (tap) { userTouched = true; showBefore(false); }
+      else if (compare.classList.contains('showing-before') || pos === 0) { compare.classList.remove('showing-before'); setPos(50); }
     };
     playBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
     playBtn.addEventListener('click', (e) => {
@@ -216,7 +438,7 @@
     // so vertical swipes still scroll the page (the frame uses touch-action: pan-y).
     let drag = null;
     compare.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || tap) return;
       drag = { id: e.pointerId, x: e.clientX, y: e.clientY, active: e.pointerType === 'mouse' };
       if (drag.active) {
         e.preventDefault();
@@ -254,31 +476,30 @@
 
     applyMode();
 
-    // Computers: intro sweep shows the "after", then settles in the middle
-    if (!auto && !reduceMotionMq.matches) {
-      const introIO = new IntersectionObserver(([en]) => {
-        if (!en.isIntersecting) return;
-        introIO.disconnect();
-        const keys = [[0, 92], [900, 8], [1900, 50]];
-        const start = performance.now() + 500;
-        const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-        const tick = (now) => {
-          if (userTouched || auto) return;
-          const t = now - start;
-          if (t < 0) return requestAnimationFrame(tick);
-          let i = 0;
-          while (i < keys.length - 2 && t > keys[i + 1][0]) i++;
-          const [t0, v0] = keys[i], [t1, v1] = keys[i + 1];
-          const p = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
-          setPos(v0 + (v1 - v0) * easeOut(p));
-          if (t < keys[keys.length - 1][0]) requestAnimationFrame(tick);
-        };
-        if (auto) return;
-        setPos(92);
-        requestAnimationFrame(tick);
-      }, { threshold: 0.5 });
-      introIO.observe(compare);
-    }
+    // Computers: intro sweep shows the "after", then settles in the middle (once it is on screen and its scene is showing)
+    let introDone = false, introInView = false;
+    const maybeIntro = () => {
+      if (introDone || userTouched || auto || reduceMotionMq.matches || !introInView || !shown()) return;
+      introDone = true;
+      const keys = [[0, 92], [900, 8], [1900, 50]];
+      const start = performance.now() + 350;
+      const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+      const tick = (now) => {
+        if (userTouched || auto) return;
+        const t = now - start;
+        if (t < 0) return requestAnimationFrame(tick);
+        let i = 0;
+        while (i < keys.length - 2 && t > keys[i + 1][0]) i++;
+        const [t0, v0] = keys[i], [t1, v1] = keys[i + 1];
+        const p = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
+        setPos(v0 + (v1 - v0) * easeOut(p));
+        if (t < keys[keys.length - 1][0]) requestAnimationFrame(tick);
+      };
+      setPos(92);
+      requestAnimationFrame(tick);
+    };
+    new IntersectionObserver(([en]) => { introInView = en.isIntersecting; maybeIntro(); }, { threshold: 0.5 }).observe(compare);
+    document.addEventListener('story:change', () => { kick(); maybeIntro(); });
   });
 
   /* ---------- card spotlight follows cursor ---------- */
@@ -391,6 +612,21 @@
   // Without it the form runs in a clearly labelled preview mode and never claims anything was sent.
   const form = $('#contact-form');
   if (form) {
+    const label = () => {
+      const intent = ($('input[name="intent"]:checked', form) || {}).value || 'review';
+      const l = $('.btn-label', form);
+      return (l && l.dataset[intent === 'project' ? 'labelProject' : 'labelReview']) || 'Send my request';
+    };
+    const applyIntent = () => {
+      const intent = ($('input[name="intent"]:checked', form) || {}).value || 'review';
+      document.documentElement.dataset.intent = intent;
+      if (!form.classList.contains('is-loading')) $('.btn-label', form).textContent = label();
+    };
+    const wanted = new URLSearchParams(location.search).get('intent');
+    const pre = wanted && $(`input[name="intent"][value="${wanted === 'project' ? 'project' : 'review'}"]`, form);
+    if (pre) pre.checked = true;
+    form.addEventListener('change', (e) => { if (e.target.name === 'intent') applyIntent(); });
+    applyIntent();
     const status = $('.form-status', form);
     const submit = $('button[type="submit"]', form);
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -424,7 +660,7 @@
       submit.disabled = on;
       form.classList.toggle('is-loading', on);
       form.setAttribute('aria-busy', String(on));
-      $('.btn-label', submit).textContent = on ? 'Sending…' : 'Send my request';
+      $('.btn-label', submit).textContent = on ? 'Sending…' : label();
     };
 
     // re-check a field as soon as the visitor fixes it

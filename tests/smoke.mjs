@@ -103,7 +103,7 @@ section('Mobile menu');
   // closed menu links must not receive focus
   const tabbed = [];
   for (let i = 0; i < 4; i++) { await page.keyboard.press('Tab'); tabbed.push(await page.evaluate(() => document.activeElement.textContent.trim().replace(/\s+/g, ' ').slice(0, 25))); }
-  ok(!tabbed.some((t) => /Website design|Support|Our work|About/.test(t)), `closed menu links received focus: ${tabbed.join(' → ')}`);
+  ok(!tabbed.some((t) => /^(Website design|Maintenance & support|Work|About|Contact)$/.test(t)), `closed menu links received focus: ${tabbed.join(' → ')}`);
 
   await page.click('.nav-toggle');
   await page.waitForTimeout(350);
@@ -213,11 +213,16 @@ section('Touch scrolling over the comparison slider');
   await page.goto(BASE + 'index.html');
   await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.compare').scrollIntoView({ block: 'center' }); });
   const getPos = () => page.evaluate(() => parseFloat(document.querySelector('.compare').style.getPropertyValue('--pos')));
-  ok(await page.evaluate(() => document.querySelector('.compare').classList.contains('is-auto')), 'phone slider should be in autoplay mode');
-  const a0 = await getPos(); await page.waitForTimeout(1200); const a1 = await getPos();
-  ok(Math.abs(a1 - a0) > 5, `phone slider should play by itself (${a0} → ${a1})`);
+  ok(await page.evaluate(() => document.querySelector('.compare').classList.contains('is-tap')), 'phone comparison should be in tap-to-switch mode');
+  const a0 = await getPos(); await page.waitForTimeout(1500); const a1 = await getPos();
+  ok(a0 === 0 && a1 === 0, `phone comparison should show the redesign and stay still (${a0} → ${a1})`);
   const fr = await (await page.$('.compare')).boundingBox();
-  ok(fr.height <= 844 * 0.72 + 1 && fr.height < fr.width * 1.7, `phone slider frame should fit on screen (${Math.round(fr.width)}×${Math.round(fr.height)})`);
+  ok(fr.height <= 844 * 0.72 + 1 && fr.height < fr.width * 1.7, `phone comparison frame should fit on screen (${Math.round(fr.width)}×${Math.round(fr.height)})`);
+  await page.tap('.compare-flip'); await page.waitForTimeout(900);
+  let t = await page.evaluate(() => ({ pos: parseFloat(document.querySelector('.compare').style.getPropertyValue('--pos')), label: document.querySelector('.compare-flip').getAttribute('aria-label'), before: getComputedStyle(document.querySelector('.tag-before')).opacity }));
+  ok(t.pos === 100 && /previous website\. Tap/.test(t.label) && t.before === '1', `a tap should show the previous site (${JSON.stringify(t)})`);
+  await page.tap('.compare-flip'); await page.waitForTimeout(900);
+  ok(await getPos() === 0, 'a second tap should show the redesign again');
   const box = await (await page.$('.compare')).boundingBox();
   const before = await page.evaluate(() => ({ y: scrollY, pos: document.querySelector('.compare').style.getPropertyValue('--pos') }));
   const cdp = await ctx.newCDPSession(page);
@@ -231,19 +236,7 @@ section('Touch scrolling over the comparison slider');
   await swipe(200, cy + 100, 205, cy - 150);
   const after = await page.evaluate(() => ({ y: scrollY, pos: document.querySelector('.compare').style.getPropertyValue('--pos') }));
   ok(after.y > before.y + 100, `vertical swipe on the slider should scroll the page (${before.y} → ${after.y})`);
-  // re-centre the slider so the horizontal swipe lands on it, not on the fixed header
-  await page.evaluate(() => document.querySelector('.compare').scrollIntoView({ block: 'center' }));
-  await page.waitForTimeout(200);
-  const box2 = await (await page.$('.compare')).boundingBox();
-  const cy2 = Math.round(Math.max(box2.y, 120) + Math.min(box2.height, 844 - 120) / 2);
-  await swipe(300, cy2, 80, cy2 + 5);
-  const swiped = parseFloat(await page.evaluate(() => document.querySelector('.compare').style.getPropertyValue('--pos')));
-  const fingerPos = ((80 - box2.x) / box2.width) * 100;
-  ok(Math.abs(swiped - fingerPos) < 6, `horizontal swipe should move the divider to the finger (~${Math.round(fingerPos)} → ${swiped})`);
-  await page.waitForTimeout(1500);
-  ok(Math.abs(await getPos() - swiped) < 1, 'autoplay should wait after a swipe instead of fighting the finger');
-  await page.click('.compare-play'); const p0 = await getPos(); await page.waitForTimeout(5500);
-  ok(Math.abs(await getPos() - p0) < 1, 'pause button should stop the autoplay');
+  ok(after.pos === before.pos, 'a vertical swipe must not switch the picture');
   await ctx.close();
 }
 
@@ -509,7 +502,7 @@ section('Layout shift during load');
 // ---------- real before/after comparison ----------
 section('Impressive Finishes comparison (home + Our work, desktop + phone)');
 for (const [vp, mobile] of [[{ width: 1440, height: 900 }, false], [{ width: 390, height: 844 }, true]]) {
-  for (const path of ['index.html', 'work.html']) {
+  for (const path of ['index.html']) {
     const ctx = await browser.newContext({ viewport: vp, hasTouch: mobile, isMobile: mobile });
     const page = await ctx.newPage();
     const tag = `${path} @${vp.width}`;
@@ -577,6 +570,157 @@ for (const rm of ['no-preference', 'reduce']) {
     ok(/website-design\.html$/.test(page.url()), `clicking a service row should open its page (at ${page.url()})`);
   }
   await ctx.close();
+}
+
+// ---------- navigation: Services menu and the contact page header ----------
+section('Services menu and header consistency');
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  const heights = {};
+  for (const path of ['index.html', 'work.html', 'contact.html', 'website-design.html']) {
+    await page.goto(BASE + path); await page.waitForTimeout(300);
+    heights[path] = await page.evaluate(() => Math.round(document.querySelector('.nav').getBoundingClientRect().height));
+    const labels = await page.$$eval('#nav-links > li', (lis) => lis.map((li) => li.querySelector('.nav-sub-toggle, a').textContent.trim()));
+    ok(labels.join('|') === 'Services|Work|About|Contact', `${path}: nav should be Services · Work · About · Contact (got ${labels.join(' · ')})`);
+    const wraps = await page.$$eval('#nav-links > li > a, .nav-sub-toggle', (els) => els.filter((e) => e.getBoundingClientRect().height > 44).length);
+    ok(wraps === 0, `${path}: a nav label wraps`);
+  }
+  ok(new Set(Object.values(heights)).size === 1, `header height should match on every page (${JSON.stringify(heights)})`);
+  await page.goto(BASE + 'contact.html');
+  const c = await page.evaluate(() => ({ btn: document.querySelectorAll('#nav-links .btn').length, cur: document.querySelector('#nav-links [aria-current="page"]')?.textContent.trim() }));
+  ok(c.btn === 1 && c.cur === 'Contact', `contact page: Contact should stay the orange button and be marked current (${JSON.stringify(c)})`);
+  const bg = await page.evaluate(() => getComputedStyle(document.querySelector('#nav-links .btn')).backgroundImage);
+  ok(/gradient/.test(bg), `contact page: the Contact button should stay orange (${bg.slice(0, 40)})`);
+  await page.goto(BASE + 'website-maintenance.html');
+  ok(await page.evaluate(() => document.querySelector('.has-sub').classList.contains('is-current')), 'Services should be marked current on a service page');
+  // keyboard
+  await page.focus('.nav-sub-toggle'); await page.keyboard.press('Enter'); await page.waitForTimeout(300);
+  ok(await page.evaluate(() => getComputedStyle(document.querySelector('.nav-sub')).visibility === 'visible'), 'Enter should open the Services menu');
+  await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+  const esc = await page.evaluate(() => ({ vis: getComputedStyle(document.querySelector('.nav-sub')).visibility, f: document.activeElement.className }));
+  ok(esc.vis === 'hidden' && /nav-sub-toggle/.test(esc.f), `Escape should close the menu and return focus (${JSON.stringify(esc)})`);
+  await page.keyboard.press('ArrowDown'); await page.waitForTimeout(300);
+  ok(await page.evaluate(() => document.activeElement.getAttribute('href') === 'website-design.html'), 'ArrowDown should open the menu and focus the first link');
+  await page.keyboard.press('Escape');
+  // mouse
+  await page.hover('.nav-sub-toggle'); await page.waitForTimeout(350);
+  await Promise.all([page.waitForURL(/website-design\.html/), page.click('.nav-sub a[href="website-design.html"]')]);
+  ok(/website-design\.html$/.test(page.url()), 'choosing Website design from the menu should open it');
+  await ctx.close();
+}
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const page = await ctx.newPage();
+  await page.goto(BASE + 'index.html');
+  await page.tap('.nav-toggle'); await page.waitForTimeout(400);
+  const visible = await page.$$eval('#nav-links a', (as) => as.filter((a) => a.getBoundingClientRect().height > 0).map((a) => a.textContent.trim()));
+  ok(visible.length === 5, `phone menu should list both services plus Work, About and Contact (${visible.join(', ')})`);
+  await Promise.all([page.waitForURL(/website-maintenance/), page.tap('#nav-links a[href="website-maintenance.html"]')]);
+  ok(/website-maintenance\.html$/.test(page.url()), 'tapping a service in the phone menu should open it');
+  await ctx.close();
+}
+
+// ---------- project stories ----------
+section('Project stories (tap / click to advance)');
+for (const [vp, touch] of [[{ width: 1280, height: 800 }, false], [{ width: 390, height: 844 }, true]]) {
+  const ctx = await browser.newContext({ viewport: vp, hasTouch: touch, isMobile: touch });
+  const page = await ctx.newPage();
+  const tag = `@${vp.width}`;
+  await page.goto(BASE + 'work.html#impressive-finishes'); await page.waitForTimeout(900);
+  const S = '#impressive-finishes';
+  const state = () => page.evaluate((s) => {
+    const st = document.querySelector(s);
+    return { i: +st.dataset.scene, next: st.querySelector('.story-next').hidden ? null : st.querySelector('.story-next').textContent.trim(),
+      h: Math.round(st.getBoundingClientRect().height), active: st.querySelectorAll('.scene.is-active').length,
+      inert: [...st.querySelectorAll('.scene')].filter((x) => x.inert).length, y: Math.round(scrollY) };
+  }, S);
+  let s0 = await state();
+  ok(s0.i === 0 && s0.active === 1 && s0.inert === 5, `${tag}: story should start on the first of six scenes (${JSON.stringify(s0)})`);
+  ok(s0.next === (touch ? 'Tap to explore' : 'Click to explore'), `${tag}: opening invitation should suit the device (${s0.next})`);
+  ok(await page.evaluate((s) => document.querySelector(`${s} .scene-media`).dataset.cue, S) === (touch ? 'Tap to explore' : 'Click to explore'), `${tag}: the image should carry the invitation`);
+  // advance by tapping/clicking the image
+  const media = await page.$(`${S} .scene.is-active .scene-media`);
+  const mb = await media.boundingBox();
+  if (touch) await page.touchscreen.tap(mb.x + mb.width / 2, mb.y + mb.height * 0.6); else await page.mouse.click(mb.x + mb.width / 2, mb.y + mb.height * 0.6);
+  await page.waitForTimeout(700);
+  let s1 = await state();
+  ok(s1.i === 1, `${tag}: tapping the image should advance (${s1.i})`);
+  ok(Math.abs(s1.h - s0.h) <= 1, `${tag}: story height should stay put between scenes (${s0.h} → ${s1.h})`);
+  ok(s1.y === s0.y, `${tag}: advancing should not scroll the page (${s0.y} → ${s1.y})`);
+  ok(await page.evaluate((s) => !document.querySelector(`${s} .compare`) && /if-before/.test(document.querySelector(`${s} .scene.is-active img`).currentSrc), S), `${tag}: second scene should be the previous site as a still picture, with no slider`);
+  // enlarge does not advance either
+  // continue button + progress revisit
+  await page.click(`${S} .story-next`); await page.waitForTimeout(600);
+  ok((await state()).i === 2, `${tag}: Continue should advance`);
+  await page.click(`${S} .story-progress li:nth-child(1) button`); await page.waitForTimeout(600);
+  ok((await state()).i === 0, `${tag}: progress should revisit an earlier scene`);
+  await page.click(`${S} .story-progress li:nth-child(6) button`); await page.waitForTimeout(700);
+  const last = await state();
+  ok(last.i === 5 && last.next === null, `${tag}: final scene should hide Continue (${JSON.stringify(last)})`);
+  const acts = await page.$$eval(`${S} .scene.is-active .scene-actions > *`, (els) => els.filter((e) => !e.hidden).map((e) => e.textContent.trim()));
+  ok(acts.some((t) => /Visit impressivefinishes\.com/.test(t)) && acts.includes('Replay') && acts.some((t) => /ProGlide/.test(t)), `${tag}: final scene actions (${acts.join(' | ')})`);
+  const lm = await (await page.$(`${S} .scene.is-active .scene-media`)).boundingBox();
+  await page.mouse.click(lm.x + lm.width / 2, lm.y + lm.height / 2); await page.waitForTimeout(500);
+  ok((await state()).i === 5, `${tag}: the last scene must not loop on click`);
+  await page.click(`${S} .story-replay:not([hidden])`); await page.waitForTimeout(600);
+  ok((await state()).i === 0, `${tag}: Replay should return to the first scene`);
+  await ctx.close();
+}
+{
+  // keyboard: arrows work inside the story only, never while the slider has focus
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE + 'work.html'); await page.waitForTimeout(600);
+  const idx = () => page.evaluate(() => +document.querySelector('#impressive-finishes').dataset.scene);
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(300);
+  ok(await idx() === 0, 'arrow keys outside the story must not change scenes');
+  await page.focus('#impressive-finishes .story-next');
+  await page.keyboard.press('Enter'); await page.waitForTimeout(500);
+  ok(await idx() === 1, 'Enter on Continue should advance');
+  ok(await page.evaluate(() => document.activeElement.classList.contains('story-next')), 'focus should stay on Continue after advancing');
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(400);
+  ok(await idx() === 2, 'ArrowRight inside the story should advance');
+  await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(400);
+  ok(await idx() === 1, 'ArrowLeft inside the story should go back');
+  ok(await page.evaluate(() => document.querySelectorAll('.story .compare').length === 0), 'the stories should contain no slider');
+  // both projects reachable without finishing one
+  await page.click('.project-switch a[href="#proglide-academy"]'); await page.waitForTimeout(900);
+  const gap = await page.evaluate(() => Math.round(document.querySelector('#pg-title').getBoundingClientRect().top - document.querySelector('.nav').getBoundingClientRect().bottom));
+  ok(gap > 0 && gap < 200, `project switch should land on ProGlide below the header (gap ${gap})`);
+  // larger view
+  await page.click('#proglide-academy .scene.is-active .enlarge'); await page.waitForTimeout(400);
+  const dlg = await page.evaluate(() => { const d = document.querySelector('dialog.lightbox'); return d && d.open && d.querySelector('img').naturalWidth > 0; });
+  ok(dlg, 'View larger should open the image in a dialog');
+  await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+  ok(await page.evaluate(() => +document.querySelector('#proglide-academy').dataset.scene) === 0, 'opening the larger view must not advance the story');
+  await ctx.close();
+}
+{
+  // without JavaScript: every scene readable, no story controls
+  const ctx = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE + 'work.html');
+  const r = await page.evaluate(() => ({ scenes: [...document.querySelectorAll('.scene')].filter((s) => getComputedStyle(s).visibility !== 'hidden' && getComputedStyle(s).opacity !== '0').length, total: document.querySelectorAll('.scene').length }));
+  ok(r.scenes === r.total && r.total === 10, `without JavaScript all ${r.total} scenes should be readable (${r.scenes} visible)`);
+  await ctx.close();
+}
+
+// ---------- contact paths ----------
+section('Contact intent');
+{
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(BASE + 'contact.html?intent=project'); await page.waitForTimeout(300);
+  let r = await page.evaluate(() => ({ checked: document.querySelector('input[name="intent"]:checked').value, title: document.querySelector('#form-title').innerText.trim(), btn: document.querySelector('.btn-label').textContent }));
+  ok(r.checked === 'project' && r.title === 'Tell us about your project' && r.btn === 'Send project details', `?intent=project should preselect the project path (${JSON.stringify(r)})`);
+  await page.click('.intent-option:has(input[value="review"])'); await page.waitForTimeout(200);
+  r = await page.evaluate(() => ({ title: document.querySelector('#form-title').innerText.trim(), btn: document.querySelector('.btn-label').textContent, site: document.querySelector('label[for="f-website"]').innerText }));
+  ok(r.title === 'Request your free review' && r.btn === 'Request my review' && /optional/.test(r.site), `switching to review should update the wording (${JSON.stringify(r)})`);
+  await page.click('.intent-option:has(input[value="project"])');
+  await page.fill('#f-name', 'Test Person'); await page.fill('#f-email', 'test@example.com');
+  await page.click('button[type="submit"]'); await page.waitForTimeout(300);
+  ok(/nothing was sent/.test(await page.textContent('.form-status')), 'project path must also say nothing was sent while unconnected');
+  await page.close();
 }
 
 await browser.close();

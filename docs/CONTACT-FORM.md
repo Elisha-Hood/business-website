@@ -1,6 +1,13 @@
 # Contact form
 
-## Current state (preview)
+## Current state
+
+**Not connected.** No form endpoint, service account or verified inbox exists in this repository or its configuration (`site.config.json` → `production.contactEndpoint` is `null`, `data-endpoint` in `contact.html` is empty). Nothing is sent, and the page says so.
+
+The form now has two paths, chosen with a radio group (`intent` = `review` or `project`) and preselected by links such as `contact.html?intent=project`. The intent is included in the submitted data so you can tell the two kinds of request apart.
+
+## Previous notes
+
 
 - Fields: name and email (required); business name, current website and message (optional). Nothing else is collected.
 - Client-side validation with per-field messages (`aria-invalid` + `aria-describedby`). Focus moves to the first problem, and errors re-check as you type.
@@ -21,7 +28,7 @@ Production is GitHub Pages, which serves static files only and can't run server 
 1. Confirm the inbox you own (see `CONFIRM-BEFORE-LAUNCH.md` #4).
 2. Create a Formspree form that delivers to that inbox. Verify the address, enable spam filtering (and optionally a CAPTCHA), and restrict the form to your production domain.
 3. Put the endpoint in `site.config.json` → `production.contactEndpoint`.
-4. Run `node scripts/build.mjs --mode=production`. The endpoint is written into `contact.html` and the preview notice is removed.
+4. **Important:** the live site is currently GitHub Pages deploying the repository root of `main` directly, without running the build. Until Pages is switched to the build output (see `LAUNCH-CHECKLIST.md`), also set `data-endpoint="https://formspree.io/f/…"` on the `<form>` in `contact.html` and remove the "isn't connected" notice there. Otherwise run `node scripts/build.mjs --mode=production`, which writes the endpoint into `contact.html` and removes the notice.
 5. Submit a real test from the live site, and confirm it arrives and that the success message appears only then.
 
 If you later move to a host with server functions (e.g. Cloudflare Pages or Netlify), the same `data-endpoint` contract can point at your own function. Validate fields server-side, verify a Turnstile token with a secret stored in the host's environment variables (never in the repo), rate-limit, and return `{"ok": true}` only after the email provider accepts the message.
