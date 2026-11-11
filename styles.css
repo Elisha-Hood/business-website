@@ -758,3 +758,9 @@ img, svg { display: block; }
 .project-teaser-copy > span:not(.eyebrow):not(.text-link) { color: var(--muted); }
 .project-teaser-copy .text-link { margin-top: 6px; }
 @media (max-width: 700px) { .project-teaser { grid-template-columns: 1fr; } }
+
+/* finished project */
+.status-chip.status-done { background: rgba(110, 220, 160, .1); color: #9be2b1; border-color: rgba(110, 220, 160, .3); }
+.status-chip.status-done::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #6edca0; }
+.compare-caption a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255, 122, 26, .6); }
+.compare-caption a:hover { text-decoration-color: var(--molten-3); }

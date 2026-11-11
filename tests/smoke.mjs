@@ -116,7 +116,7 @@ section('Mobile menu');
   ok(box.height >= 44, `menu touch target too small (${box.height}px)`);
 
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(600); // closing transition is 300ms; leave headroom on a busy machine
   s = await state();
   ok(s.expanded === 'false' && s.visibility === 'hidden', 'Escape should close the menu');
   ok(/Menu/.test(s.active), `focus should return to the toggle after Escape (was on "${s.active}")`);
