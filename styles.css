@@ -96,6 +96,7 @@ img, svg { display: block; }
   background: var(--molten); color: #1a0d03; font-weight: 700;
   box-shadow: 0 0 24px -4px rgba(255, 106, 26, .8);
 }
+.logo-mark svg { width: 22px; height: 22px; fill: currentColor; display: block; }
 .nav-links { list-style: none; display: flex; align-items: center; gap: 30px; margin: 0; padding: 0; }
 .nav-links a:not(.btn) { color: var(--muted); font-weight: 500; font-size: .95rem; position: relative; transition: color .3s; }
 .nav-links a:not(.btn)::after {
