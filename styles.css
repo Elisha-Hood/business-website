@@ -164,6 +164,14 @@ img, svg { display: block; }
   -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 10%, transparent 70%);
   opacity: .5;
 }
+/* inner pages: the glow sits higher and fades out before the header ends, so it melts into the next section
+   instead of being cut off in a hard horizontal line */
+.page-hero::before {
+  inset: auto -20% 0 -20%; height: 120%;
+  background: radial-gradient(ellipse 60% 55% at 50% 72%, rgba(255, 94, 26, .30), rgba(255, 94, 26, .07) 50%, transparent 75%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+}
 @keyframes breathe { 50% { opacity: .65; transform: scale(1.06); } }
 .embers { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
 .hero-inner { max-width: 980px; text-align: center; }
@@ -1118,12 +1126,21 @@ img, svg { display: block; }
   opacity: 0; transform: translateY(6px); transition: opacity .3s var(--ease), transform .4s var(--ease); pointer-events: none;
 }
 .story.is-ready .scene-media[data-cue=""]::after, .story.is-ready .scene-compare .scene-media::after { display: none; }
-.story.is-ready.at-start .scene-media::after { opacity: 1; transform: none; }
+/* with a mouse the orange button below already says "Click to explore", so the image only shows its hint on hover;
+   on touch screens (no hover) the hint stays visible at the start so people know the image can be tapped */
 @media (hover: hover) { .story.is-ready .scene-media:hover::after { opacity: 1; transform: none; } }
-.story.is-ready.at-start .scene-media[data-cue]:not([data-cue=""])::after { animation: cue-breathe 2.8s ease-in-out 1.2s infinite; }
+@media (hover: none) {
+  .story.is-ready.at-start .scene-media::after { opacity: 1; transform: none; }
+  .story.is-ready.at-start .scene-media[data-cue]:not([data-cue=""])::after { animation: cue-breathe 2.8s ease-in-out 1.2s infinite; }
+}
 @keyframes cue-breathe { 50% { box-shadow: 0 0 0 6px rgba(255, 122, 26, .16); } }
 
 .story-controls { display: flex; justify-content: flex-end; align-items: center; min-height: 52px; margin-top: 18px; }
+/* side-by-side layout: line the button up under the text column instead of floating at the far right */
+@media (min-width: 961px) {
+  .story-controls { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); column-gap: clamp(24px, 4vw, 56px); }
+  .story-controls > * { grid-column: 2; justify-self: start; }
+}
 .story-next {
   display: inline-flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 20px 0 24px; border-radius: 999px; cursor: pointer;
   border: 1px solid rgba(255, 140, 60, .45); background: rgba(255, 122, 26, .1); color: var(--text); font: 600 1rem Inter, sans-serif;
