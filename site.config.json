@@ -10,7 +10,14 @@
     "contactEndpoint": null,
     "business": {
       "name": "Foundry Digital",
-      "confirmed": false
+      "confirmed": false,
+      "areaServed": [
+        "Cumming, GA",
+        "Canton, GA",
+        "Forsyth County, GA",
+        "Cherokee County, GA",
+        "North Georgia"
+      ]
     }
   }
 }
