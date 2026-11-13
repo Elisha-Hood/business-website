@@ -1,20 +1,37 @@
-# Impressive Finishes before/after: screenshot record
+# Impressive Finishes screenshots: sources and capture record
 
-Used on the homepage ("Our work") and on `work.html`. All images are real browser screenshots (Chromium via Playwright, headless), taken on **2026-11-09** at the top of each page after web fonts and every image in the first screen had loaded. No retouching apart from WebP compression; no browser chrome.
+All images are real browser screenshots (Chromium via Playwright, headless). No retouching beyond resizing and WebP compression; no browser chrome or archive toolbars.
 
-| Side | Source | Desktop file (1440 × 900 CSS px, 1×) | Phone file (390 × 844 CSS px, 2×) |
-| --- | --- | --- | --- |
-| Before | https://impressivefinishes.com/ as it was on **2026-11-09**, before launch — the business's **previous website** (WordPress / Elementor 4.3.5) | `assets/work/if-before-desktop-1440x900.webp` (+ `-720x450` for small screens) | `assets/work/if-before-mobile-390x844@2x.webp` |
-| After | https://impressivefinishes.com/ — **our redesign, live on the client's domain** (verified 2026-11-11: serves the redesign, `index, follow`; `www` redirects to it). Captured **2026-11-11**. | `assets/work/if-after-live-desktop-1440x900.webp` (+ `-720x450`) | `assets/work/if-after-live-mobile-390x844@2x.webp` |
+## After: the live redesigned site (captured 2026-11-13)
 
-Checks at capture time: same business on both (phone 770-569-5999); before used Poppins and Raleway, after used Archivo and Newsreader, all loaded; no broken images; no popups or cookie banners in view. The only contact detail shown is the business phone number.
+Source: https://impressivefinishes.com/ (live, verified 2026-11-13: served by Cloudflare, `index, follow`, old WordPress URLs such as `/home-2/` and `/projects%20` 301-redirect to their new pages; MX still Google).
 
-## Why "before" is the current site, not the 2019 original
+Each capture waited for both web fonts (Archivo, Newsreader) and every visible image to finish loading, with the pointer parked in the margin so no hover states show. Scrolling used the mouse wheel (the site ignores `scrollTo`), stopping with the section heading just under the sticky header.
 
-The intended "before" was the original pre-WordPress site from the Wayback Machine (`http://www.impressivefinishes.com/`, capture **20190321043320**, i.e. 2019-03-21 04:33:20 UTC; confirmed via the archive.org availability API as the most recent capture, with earlier ones from 2016-04-10, 2017-07-14 and 2018-06-17). `web.archive.org` and `archive.ph` are explicitly blocked by the egress policy of the environment this was built in ("Blocked by egress policy"), and the original asset host `static.sites.yp.com` does not respond, so that capture could not be rendered. At the owner's request the current live site is used instead, and it is labelled "current site", not "archived".
+| File (desktop: 960 / 1600 / 2400 px wide, from a 1440×900 viewport at 2×) | Page | Framing |
+| --- | --- | --- |
+| `if-live-home-desktop-*.webp` | `/` | Top of page: hero and trust strip |
+| `if-live-services-desktop-*.webp` | `/` | “Painting & repair services” heading and the four service cards |
+| `if-live-gallery-desktop-*.webp` | `/projects/` | Filter buttons and the top of the photo gallery |
+| `if-live-estimate-desktop-*.webp` | `/contact/` | Estimate form beside “What happens next” |
 
-To switch to the 2019 version later: replace the two `if-before-*` files with screenshots of the archived page at the same sizes, and change the "Before · previous site" label and the caption in the page generator to "Previous website · archived 2019".
+Phone versions (`if-live-*-mobile-390x844@2x.webp`): the same four views at 390×844, 2× scale, iPhone-class touch emulation.
 
-## Launch (2026-11-11)
+## Before: the previous WordPress site (captured 2026-11-09)
 
-The redesign is live on impressivefinishes.com, so the "after" was re-captured from the live domain (it now shows a different hero photo and a trust bar than the earlier preview capture) and saved under new `if-after-live-*` names so browsers don't show the cached preview images. Labels are now "Before · previous site" / "After · live site", and `work.html` marks the project as completed. A re-check of the Wayback Machine on 2026-11-11 was still refused ("Blocked by egress policy"), so the "before" remains the WordPress site captured on 2026-11-09.
+| File | Source | Notes |
+| --- | --- | --- |
+| `if-before-desktop-1440x900.webp` (+ `-720x450`) | https://impressivefinishes.com/ on 2026-11-09, before launch | WordPress / Elementor 4.3.5. Fonts (Poppins, Raleway) and all visible images loaded. |
+| `if-before-mobile-390x844@2x.webp` | same | Phone view, same date |
+
+## Why there are no Wayback Machine captures
+
+The 2019 pre-WordPress site exists in the Wayback Machine (`http://www.impressivefinishes.com/`, capture `20190321043320`; confirmed via the archive.org availability API, which still returns it as the closest capture on 2026-11-13). `web.archive.org` is blocked by the egress policy of the environment this site is built in (rechecked 2026-11-13: “Blocked by egress policy”), so neither that capture nor any WordPress-era capture could be rendered or verified. No archive image has been fabricated or approximated.
+
+The redesign’s own repository (`genaric6/Impressive-Finishes`, branch `ccr-2ab55ca3-bf15w8`) documents the WordPress setup it replaced (SiteGround hosting, Google Workspace email, `/home-2/` FAQ, the `/projects%20` link). Those facts are what the story’s “Where it started” and “Launch” scenes describe.
+
+To add archive images later: capture at 1440×900 with the Wayback toolbar hidden, save as `if-archive-<view>-desktop-*.webp`, and record the snapshot URL and timestamp here.
+
+## Early result
+
+“The owner reported two leads within the first few days after launch.” Owner-provided (2026-11-13). Not claimed: that the leads came through the website, became customers, or were caused by the redesign alone.
