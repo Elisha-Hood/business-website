@@ -7,7 +7,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 
 const BASE = process.env.BASE || 'http://localhost:8080/';
-const PAGES = ['index.html', 'website-design.html', 'website-maintenance.html', 'work.html', 'contact.html', '404.html'];
+const PAGES = ['index.html', 'about.html', 'website-design.html', 'website-maintenance.html', 'work.html', 'contact.html', '404.html'];
 const WIDTHS = [360, 390, 768, 1024, 1440];
 let failures = 0, passes = 0;
 const ok = (cond, msg) => { if (cond) { passes++; } else { failures++; console.log(`  ✖ ${msg}`); } };
@@ -127,10 +127,10 @@ section('Mobile menu');
   ok(s.expanded === 'false', 'tapping outside should close the menu');
 
   await page.click('.nav-toggle'); await page.waitForTimeout(350);
-  await page.click('#nav-links a[href="index.html#about"]'); await page.waitForTimeout(900);
+  await page.click('#nav-links a[href="about.html"]'); await page.waitForTimeout(900);
   s = await state();
   ok(s.expanded === 'false', 'choosing a link should close the menu');
-  const headerOverlap = await page.evaluate(() => document.querySelector('#about-title').getBoundingClientRect().top - document.querySelector('.nav').getBoundingClientRect().bottom);
+  const headerOverlap = await page.evaluate(() => document.querySelector('h1').getBoundingClientRect().top - document.querySelector('.nav').getBoundingClientRect().bottom);
   ok(headerOverlap >= 0, `fixed header covers the anchor target by ${-headerOverlap}px`);
 
   await page.click('.nav-toggle'); await page.waitForTimeout(300);
@@ -363,7 +363,7 @@ for (const vp of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
 
   // section link from another page lands on the section, clear of the fixed header
   await page.evaluate(() => scrollTo(0, 400)); await page.waitForTimeout(100);
-  await clickNav('header a[href="index.html#about"]');
+  await page.evaluate(() => { location.href = 'index.html#about'; }); await settle();
   let gap = await page.evaluate(() => Math.round(document.querySelector('#about-title').getBoundingClientRect().top - document.querySelector('.nav').getBoundingClientRect().bottom));
   ok(gap >= 8 && gap <= 120, `${tag} About link should land with the heading just below the header (gap ${gap}px)`);
   const aboutY = await page.evaluate(() => Math.round(scrollY));
@@ -636,7 +636,7 @@ for (const [vp, touch] of [[{ width: 1280, height: 800 }, false], [{ width: 390,
       inert: [...st.querySelectorAll('.scene')].filter((x) => x.inert).length, y: Math.round(scrollY) };
   }, S);
   let s0 = await state();
-  ok(s0.i === 0 && s0.active === 1 && s0.inert === 5, `${tag}: story should start on the first of six scenes (${JSON.stringify(s0)})`);
+  ok(s0.i === 0 && s0.active === 1 && s0.inert === 6, `${tag}: story should start on the first of seven scenes (${JSON.stringify(s0)})`);
   ok(s0.next === (touch ? 'Tap to explore' : 'Click to explore'), `${tag}: opening invitation should suit the device (${s0.next})`);
   ok(await page.evaluate((s) => document.querySelector(`${s} .scene-media`).dataset.cue, S) === (touch ? 'Tap to explore' : 'Click to explore'), `${tag}: the image should carry the invitation`);
   // advance by tapping/clicking the image
@@ -655,14 +655,14 @@ for (const [vp, touch] of [[{ width: 1280, height: 800 }, false], [{ width: 390,
   ok((await state()).i === 2, `${tag}: Continue should advance`);
   await page.click(`${S} .story-progress li:nth-child(1) button`); await page.waitForTimeout(600);
   ok((await state()).i === 0, `${tag}: progress should revisit an earlier scene`);
-  await page.click(`${S} .story-progress li:nth-child(6) button`); await page.waitForTimeout(700);
+  await page.click(`${S} .story-progress li:nth-child(7) button`); await page.waitForTimeout(700);
   const last = await state();
-  ok(last.i === 5 && last.next === null, `${tag}: final scene should hide Continue (${JSON.stringify(last)})`);
+  ok(last.i === 6 && last.next === null, `${tag}: final scene should hide Continue (${JSON.stringify(last)})`);
   const acts = await page.$$eval(`${S} .scene.is-active .scene-actions > *`, (els) => els.filter((e) => !e.hidden).map((e) => e.textContent.trim()));
   ok(acts.some((t) => /Visit impressivefinishes\.com/.test(t)) && acts.includes('Replay') && acts.some((t) => /ProGlide/.test(t)), `${tag}: final scene actions (${acts.join(' | ')})`);
   const lm = await (await page.$(`${S} .scene.is-active .scene-media`)).boundingBox();
   await page.mouse.click(lm.x + lm.width / 2, lm.y + lm.height / 2); await page.waitForTimeout(500);
-  ok((await state()).i === 5, `${tag}: the last scene must not loop on click`);
+  ok((await state()).i === 6, `${tag}: the last scene must not loop on click`);
   await page.click(`${S} .story-replay:not([hidden])`); await page.waitForTimeout(600);
   ok((await state()).i === 0, `${tag}: Replay should return to the first scene`);
   await ctx.close();
@@ -702,7 +702,7 @@ for (const [vp, touch] of [[{ width: 1280, height: 800 }, false], [{ width: 390,
   const page = await ctx.newPage();
   await page.goto(BASE + 'work.html');
   const r = await page.evaluate(() => ({ scenes: [...document.querySelectorAll('.scene')].filter((s) => getComputedStyle(s).visibility !== 'hidden' && getComputedStyle(s).opacity !== '0').length, total: document.querySelectorAll('.scene').length }));
-  ok(r.scenes === r.total && r.total === 10, `without JavaScript all ${r.total} scenes should be readable (${r.scenes} visible)`);
+  ok(r.scenes === r.total && r.total === 11, `without JavaScript all ${r.total} scenes should be readable (${r.scenes} visible)`);
   await ctx.close();
 }
 
